@@ -59,6 +59,8 @@ Pour chaque donnée, précisez :
 
 Les règles doivent être rédigées sous forme de phrases métier.
 
+Un support d'aide est disponible dans [`docs/aide-regles-gestion.md`](docs/aide-regles-gestion.md).
+
 Exemples de formulation :
 
 ```text
