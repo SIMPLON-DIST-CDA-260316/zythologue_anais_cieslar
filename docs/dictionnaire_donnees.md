@@ -21,14 +21,14 @@
  
 ### beer
  
-| Champ       | Type         | Description             | Contraintes            |
-|-------------|--------------|-------------------------|------------------------|
-| id          | SERIAL       | Identifiant unique      | PRIMARY KEY            |
-| name        | VARCHAR(255) | Nom de la bière         | NOT NULL               |
-| description | TEXT         | Description de la bière |                        |
-| alcohol_deg | NUMERIC      | Taux d'alcool (% vol.)  |                        |
-| price       | NUMERIC      | Prix en euros           |                        |
-| brewery_id  | INTEGER      | Brasserie productrice   | REFERENCES brewery(id) |
+| Champ       | Type         | Description             | Contraintes                               |
+|-------------|--------------|-------------------------|-------------------------------------------|
+| id          | SERIAL       | Identifiant unique      | PRIMARY KEY                               |
+| name        | VARCHAR(255) | Nom de la bière         | NOT NULL                                  |
+| description | TEXT         | Description de la bière |                                           |
+| alcohol_deg | NUMERIC      | Taux d'alcool (% vol.)  |                                           |
+| price       | NUMERIC      | Prix en euros           |                                           |
+| brewery_id  | INTEGER      | Brasserie productrice   | REFERENCES brewery(id) ON DELETE RESTRICT |
  
 ### category
  
@@ -59,16 +59,16 @@
 | comment    | TEXT        | Texte de l'avis                 |                                          |
 | rating     | SMALLINT    | Note entre 1 et 5               | NOT NULL, CHECK (rating BETWEEN 1 AND 5) |
 | created_at | TIMESTAMPTZ | Date de l'avis                  | NOT NULL DEFAULT NOW()                   |
-| user_id    | INTEGER     | Auteur de l'avis                | REFERENCES user(id)                      |
-| beer_id    | INTEGER     | Bière concernée (si applicable) | REFERENCES beer(id)                      |
+| user_id    | INTEGER     | Auteur de l'avis                | REFERENCES user(id) ON DELETE CASCADE    |
+| beer_id    | INTEGER     | Bière concernée (si applicable) | REFERENCES beer(id) ON DELETE CASCADE    |
 
 ### user-brewery-review
 
-| Champ      | Type        | Description                         | Contraintes                              |
-|------------|-------------|-------------------------------------|------------------------------------------|
-| id         | SERIAL      | Identifiant unique                  | PRIMARY KEY                              |
-| comment    | TEXT        | Texte de l'avis                     |                                          |
-| rating     | SMALLINT    | Note entre 1 et 5                   | NOT NULL, CHECK (rating BETWEEN 1 AND 5) |
-| created_at | TIMESTAMPTZ | Date de l'avis                      | NOT NULL DEFAULT NOW()                   |
-| user_id    | INTEGER     | Auteur de l'avis                    | REFERENCES user(id)                      |
-| brewery_id | INTEGER     | Brasserie concernée (si applicable) | REFERENCES brewery(id)                   |
+| Champ      | Type        | Description                         | Contraintes                               |
+|------------|-------------|-------------------------------------|-------------------------------------------|
+| id         | SERIAL      | Identifiant unique                  | PRIMARY KEY                               |
+| comment    | TEXT        | Texte de l'avis                     |                                           |
+| rating     | SMALLINT    | Note entre 1 et 5                   | NOT NULL, CHECK (rating BETWEEN 1 AND 5)  |
+| created_at | TIMESTAMPTZ | Date de l'avis                      | NOT NULL DEFAULT NOW()                    |
+| user_id    | INTEGER     | Auteur de l'avis                    | REFERENCES user(id)  ON DELETE CASCADE    |
+| brewery_id | INTEGER     | Brasserie concernée (si applicable) | REFERENCES brewery(id) ON DELETE RESTRICT |
