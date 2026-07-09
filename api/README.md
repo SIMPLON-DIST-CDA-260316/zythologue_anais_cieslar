@@ -19,7 +19,7 @@ GET /beers/1
 ```
 
 
-#### Example response
+#### Response
 
 ##### Success response
 ###### Status: 200 OK
@@ -56,4 +56,92 @@ GET /beers/1
 }
 ```
 
+### Create one beer
 
+#### Endpoint
+
+POST `/beers`
+
+#### Description
+
+Create a new beer.
+
+#### Request body
+
+```json
+{
+  "name": "IPA Test",
+  "description": "Une IPA de test",
+  "alcohol_deg": 6.5,
+  "price": 4.5,
+  "brewery_id": 1
+}
+```
+
+#### Response
+
+##### Success response
+###### Status: 201 Created
+
+```json
+{
+  "id": 44,
+  "name": "Mélusine Brune",
+  "description": "Brune douce aux arômes de chocolat au lait",
+  "alcohol_deg": "5.80",
+  "price": "3.80",
+  "brewery_id": 19
+}
+```
+
+##### Error responses
+
+###### Missing required fields
+
+Status: **400 Bad Request**
+
+```json
+{
+  "message": "Missing required fields"
+}
+```
+
+###### Name cannot be empty
+
+Status: **400 Bad Request**
+
+```json
+{
+  "message": "Name cannot be empty"
+}
+```
+
+###### Alcohol degree must be a positive number
+
+Status: **400 Bad Request**
+
+```json
+{
+  "message": "Alcohol degree must be a positive number"
+}
+```
+
+###### Price must be a positive number
+
+Status: **400 Bad Request**
+
+```json
+{
+  "message": "Price must be a positive number"
+}
+```
+
+###### A valid brewery_id is required
+
+Status: **400 Bad Request**
+
+```json
+{
+  "message": "A valid brewery_id is required"
+}
+```
