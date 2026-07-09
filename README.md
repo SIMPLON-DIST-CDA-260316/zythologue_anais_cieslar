@@ -58,7 +58,7 @@ docker compose start
 docker compose down
 docker compose down -v
 docker compose logs -f
-docker compose config
+docker compose database
 ```
 
 Équivalent via `package.json` (npm/pnpm/yarn) :
@@ -71,7 +71,7 @@ npm run docker:start
 npm run docker:down
 npm run docker:down:volumes
 npm run docker:logs
-npm run docker:config
+npm run docker:database
 ```
 
 Note : `docker compose config` a été vérifié sur ce dépôt le 12/06/2026.

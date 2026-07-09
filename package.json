@@ -13,5 +13,8 @@
     "docker:logs": "docker compose logs -f",
     "docker:ps": "docker compose ps",
     "docker:config": "docker compose config"
+  },
+  "dependencies": {
+    "pg": "^8.22.0"
   }
 }
