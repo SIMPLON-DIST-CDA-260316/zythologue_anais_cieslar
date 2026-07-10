@@ -145,3 +145,131 @@ Status: **400 Bad Request**
   "message": "A valid brewery_id is required"
 }
 ```
+### Update one beer
+
+#### Endpoint
+
+PATCH `/beers/:id`
+
+#### Description
+
+Update one or more fields of an existing beer.
+
+#### Request body
+
+All fields are optional. Only the provided fields will be updated.
+
+```json
+{
+  "price": 4.50
+}
+```
+
+Or
+
+```json
+{
+  "name": "Mont Blanc Blanche",
+  "description": "White beer",
+  "alcohol_deg": 4.8,
+  "price": 3.80,
+  "brewery_id": 1
+}
+```
+
+#### Success response
+
+##### Status: 200 OK
+
+```json
+{
+  "id": 1,
+  "name": "Mont Blanc Blanche",
+  "description": "White beer",
+  "alcohol_deg": "4.80",
+  "price": "3.80",
+  "brewery_id": 1
+}
+```
+
+#### Error responses
+
+###### Invalid beer id
+
+##### Status: 400 Bad Request
+
+```json
+{
+  "message": "Invalid beer id"
+}
+```
+
+###### Request body cannot be empty
+
+##### Status: 400 Bad Request
+
+```json
+{
+  "message": "No fields to update"
+}
+```
+
+###### Name cannot be empty
+
+##### Status: 400 Bad Request
+
+```json
+{
+  "message": "Name cannot be empty"
+}
+```
+
+###### Alcohol degree must be a positive number
+
+##### Status: 400 Bad Request
+
+```json
+{
+  "message": "Alcohol degree must be a positive number"
+}
+```
+
+###### Price must be a positive number
+
+##### Status: 400 Bad Request
+
+```json
+{
+  "message": "Price must be a positive number"
+}
+```
+
+###### A valid brewery_id is required
+
+##### Status: 400 Bad Request
+
+```json
+{
+  "message": "A valid brewery_id is required"
+}
+```
+
+###### Beer not found
+
+##### Status: 404 Not Found
+
+```json
+{
+  "message": "Beer not found"
+}
+```
+
+###### Internal server error
+
+##### Status: 500 Internal Server Error
+
+```json
+{
+  "message": "Internal server error"
+}
+```
