@@ -23,3 +23,9 @@ export async function updateBeer(id, beer) {
     );
     return result.rows[0];
 }
+
+export async function deleteBeer(id) {
+    const result = await pool.query(
+        'DELETE FROM beer WHERE id = $1 RETURNING *',[id]
+    )
+}
