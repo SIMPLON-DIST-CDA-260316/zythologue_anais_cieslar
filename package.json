@@ -4,8 +4,6 @@
   "private": true,
   "description": "Raccourcis pnpm pour gérer l'environnement Docker PostgreSQL du brief Zythologue.",
   "scripts": {
-    "dev": "node --watch ./api/src/server.js",
-    "start": "node src/server.js",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:down:volumes": "docker compose down -v",
