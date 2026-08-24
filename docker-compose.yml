@@ -17,5 +17,27 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build: .
+    container_name: zythologue-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: ${API_PORT:-3000}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-zythologue}
+      DB_USER: ${POSTGRES_USER:-zythologue}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-zythologue}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run dev
+
 volumes:
   postgres18_cluster:
