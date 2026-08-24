@@ -273,3 +273,65 @@ Or
   "message": "Internal server error"
 }
 ```
+### Delete one beer
+
+#### Endpoint
+
+DELETE `/beers/:id`
+
+#### Description
+
+Delete an existing beer by its identifier.
+
+#### Example request
+
+```http
+DELETE /beers/1
+```
+
+#### Success response
+
+##### Status: 200 OK
+
+```json
+{
+  "id": 1,
+  "name": "Mont Blanc Blonde",
+  "description": "Blonde légère et rafraîchissante aux arômes floraux",
+  "alcohol_deg": "5.00",
+  "price": "3.50",
+  "brewery_id": 1
+}
+```
+
+#### Error responses
+
+##### Invalid beer id
+
+##### Status: 400 Bad Request
+
+```json
+{
+  "message": "Invalid beer id"
+}
+```
+
+##### Beer not found
+
+##### Status: 404 Not Found
+
+```json
+{
+  "message": "Beer not found"
+}
+```
+
+##### Internal server error
+
+##### Status: 500 Internal Server Error
+
+```json
+{
+  "message": "Internal server error"
+}
+```
