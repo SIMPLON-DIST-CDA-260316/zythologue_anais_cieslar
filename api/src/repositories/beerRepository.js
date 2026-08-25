@@ -1,6 +1,13 @@
 import pool from "../database/client.js";
 
-export async function getById(id) {
+export async function findAllBeers() {
+    const result = await pool.query(
+        'SELECT * FROM beer'
+    );
+    return result.rows;
+}
+
+export async function findOneBeer(id) {
     const result = await pool.query(
         'SELECT * FROM beer WHERE id = $1',
         [id]

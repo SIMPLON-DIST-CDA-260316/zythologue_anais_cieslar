@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { findOneBeer, createBeer, modifyBeer, removeBeer } from "../controllers/beerController.js";
+import { getBeers, getOneBeer, createBeer, modifyBeer, removeBeer } from "../controllers/beerController.js";
 
 const router = Router();
 
-router.get("/:id", findOneBeer);
+router.get("/", getBeers);
+router.get("/:id", getOneBeer);
 router.post("/", createBeer);
 router.patch("/:id", modifyBeer);
 router.delete("/:id", removeBeer);

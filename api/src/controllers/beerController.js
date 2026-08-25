@@ -1,6 +1,20 @@
-import {getById, addBeer, updateBeer, deleteBeer} from "../repositories/beerRepository.js";
+import {findAllBeers, findOneBeer, addBeer, updateBeer, deleteBeer} from "../repositories/beerRepository.js";
 
-export async function findOneBeer(req, res) {
+export async function getBeers(req, res) {
+    try {
+        const beers = await findAllBeers();
+        res.status(200).json(beers);
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+}
+
+export async function getOneBeer(req, res) {
     try {
         const id = Number(req.params.id);
         if (isNaN(id)){
@@ -9,7 +23,7 @@ export async function findOneBeer(req, res) {
             });
         }
 
-        const beer = await getById(id)
+        const beer = await findOneBeer(id)
 
         if (!beer) {
             return res.status(404).json({
