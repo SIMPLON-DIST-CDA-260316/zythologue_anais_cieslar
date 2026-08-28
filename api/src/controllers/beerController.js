@@ -1,4 +1,8 @@
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 import {findAllBeers, findOneBeer, addBeer, updateBeer, deleteBeer} from "../repositories/beerRepository.js";
+import { addPhotoToBeer } from "../repositories/photoRepository.js";
 
 export async function getBeers(req, res) {
     try {
@@ -140,6 +144,48 @@ export async function modifyBeer(req, res) {
         }
 
         res.status(200).json(newBeer);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+}
+
+export async function addBeerPhotos(req, res) {
+    try {
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid beer id'
+            });
+        }
+
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({
+                message: "No files uploaded"
+            });
+        }
+
+        const beer = await findOneBeer(id);
+        if (!beer) {
+            return res.status(404).json({
+                message: 'Beer not Found'
+            });
+        }
+
+        const photos = await Promise.all(req.files.map(async (file) => {
+            const filename = `${randomUUID()}${path.extname(file.originalname)}`;
+            const filePath = path.join(process.cwd(), "uploads", "beers", filename);
+            await writeFile(filePath, file.buffer);
+
+            const url = `/uploads/beers/${filename}`;
+            return addPhotoToBeer(id, url);
+        }));
+
+        res.status(201).json(photos);
+
     } catch (error) {
         console.error(error);
 

@@ -1,2 +1,6 @@
 .env
 node_modules
+
+# uploaded photos: keep the folder structure, ignore the actual files
+api/uploads/**/*
+!api/uploads/**/.gitkeep
