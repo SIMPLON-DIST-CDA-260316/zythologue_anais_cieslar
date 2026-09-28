@@ -19,15 +19,22 @@ Ce dépôt contient :
 ```text
 zythologue/
 ├── docker-compose.yml
-├── Dockerfile
-├── .dockerignore
-├── .env.example
 ├── package.json
-├── src/
-│   ├── server.js
-│   ├── controllers/
-│   ├── repositories/
-│   └── ...
+├── api/
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── .env.sample
+│   ├── package.json
+│   ├── README.md          (documentation détaillée des endpoints)
+│   ├── uploads/           (photos uploadées, ignoré par git)
+│   └── src/
+│       ├── server.js
+│       ├── controllers/
+│       ├── repositories/
+│       ├── routes/
+│       ├── middlewares/   (ex: upload Multer)
+│       ├── validation/    (schémas Zod)
+│       └── database/
 ├── docs/
 │   ├── dictionnaire_donnees.md
 │   └── regles_gestion.md
@@ -115,11 +122,17 @@ Créer une connexion PostgreSQL avec les valeurs de `.env` (host `localhost`), p
 Une fois les conteneurs démarrés, l'API est accessible sur `http://localhost:3000`.
 
 ```text
-GET /beers        → liste des bières
-GET /beers/:id    → détail d'une bière
+GET    /beers               → liste des bières (avec brasserie, ingrédients, catégories, photos)
+GET    /beers/:id           → détail d'une bière
+POST   /beers                → créer une bière (validation Zod)
+PATCH  /beers/:id            → mettre à jour une bière (validation Zod)
+DELETE /beers/:id            → supprimer une bière
+POST   /beers/:id/photos     → uploader une ou plusieurs photos pour une bière (multipart/form-data)
 ```
 
-Le rechargement à chaud est actif en développement : toute modification dans `src/` est prise en compte automatiquement.
+Documentation détaillée de chaque endpoint (corps de requête, réponses, erreurs) : voir [`api/README.md`](api/README.md).
+
+Le rechargement à chaud est actif en développement (`node --watch`) : toute modification dans `api/src/` est censée être prise en compte automatiquement. En pratique, sur Mac, le bind mount Docker rate parfois les évènements de changement de fichier — si le comportement observé ne correspond pas au code, faire `docker compose restart api` avant de chercher un bug ailleurs.
 
 ## Etat actuel du projet
 
@@ -128,3 +141,6 @@ Le rechargement à chaud est actif en développement : toute modification dans `
 - Le chargement base + seed fonctionne.
 - La connexion API ↔ PostgreSQL via le réseau Docker interne (`DB_HOST=postgres`) est en place.
 - Le fichier de requêtes `sql/03_queries.sql` est à terminer pour couvrir tout le besoin fonctionnel.
+- CRUD complet sur `beer` (create, read, update, delete), avec validation des données via Zod.
+- Upload de photos pour les bières (Multer, stockage disque, exposition via `GET /beers`).
+- Pas encore de CRUD ni d'upload de photos pour `brewery` (même pattern à répliquer plus tard).

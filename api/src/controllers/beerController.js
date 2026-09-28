@@ -1,6 +1,25 @@
-import {getById, addBeer, updateBeer, deleteBeer} from "../repositories/beerRepository.js";
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import {findAllBeers, findOneBeer, addBeer, updateBeer, deleteBeer} from "../repositories/beerRepository.js";
+import { addPhotoToBeer } from "../repositories/photoRepository.js";
+import { findBreweryById } from "../repositories/breweryRepository.js";
 
-export async function findOneBeer(req, res) {
+export async function getBeers(req, res) {
+    try {
+        const beers = await findAllBeers();
+        res.status(200).json(beers);
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+}
+
+export async function getOneBeer(req, res) {
     try {
         const id = Number(req.params.id);
         if (isNaN(id)){
@@ -9,7 +28,7 @@ export async function findOneBeer(req, res) {
             });
         }
 
-        const beer = await getById(id)
+        const beer = await findOneBeer(id)
 
         if (!beer) {
             return res.status(404).json({
@@ -31,35 +50,10 @@ export async function findOneBeer(req, res) {
 export async function createBeer(req, res) {
 
     try {
-        const { name, description, alcohol_deg, price, brewery_id } = req.body;
-
-        if ( name === undefined || description === undefined || alcohol_deg === undefined || price === undefined || brewery_id === undefined) {
-            return res.status(400).json({
-                message: "Missing required fields"
-            });
-        }
-
-        if (name.trim().length === 0) {
-            return res.status(400).json({
-                message: "Name cannot be empty"
-            });
-        }
-
-        if (typeof alcohol_deg !== "number" || alcohol_deg < 0) {
-            return res.status(400).json({
-                message: "Alcohol degree must be a positive number"
-            })
-        }
-
-        if (typeof price !== "number" || price <= 0) {
-            return res.status(400).json({
-                message: "Price must be a positive number"
-            });
-        }
-
-        if (typeof brewery_id !== "number" || brewery_id < 1) {
-            return res.status(400).json({
-                message: "A valid brewery_id is required"
+        const brewery = await findBreweryById(req.body.brewery_id);
+        if (!brewery) {
+            return res.status(404).json({
+                message: "Brewery not found"
             });
         }
 
@@ -91,30 +85,13 @@ export async function modifyBeer(req, res) {
             });
         }
 
-        const {name, alcohol_deg, price, brewery_id} = req.body;
-
-        if (name !== undefined && name.trim().length === 0) {
-            return res.status(400).json({
-                message: "Name cannot be empty"
-            });
-        }
-
-        if (alcohol_deg !== undefined && (typeof alcohol_deg !== "number" || alcohol_deg < 0)) {
-            return res.status(400).json({
-                message: "Alcohol degree must be a positive number"
-            })
-        }
-
-        if (price !== undefined && (typeof price !== "number" || price <= 0)) {
-            return res.status(400).json({
-                message: "Price must be a positive number"
-            });
-        }
-
-        if (brewery_id !== undefined && (typeof brewery_id !== "number" || brewery_id < 1)) {
-            return res.status(400).json({
-                message: "A valid brewery_id is required"
-            });
+        if (req.body.brewery_id !== undefined) {
+            const brewery = await findBreweryById(req.body.brewery_id);
+            if (!brewery) {
+                return res.status(404).json({
+                    message: "Brewery not found"
+                });
+            }
         }
 
         const newBeer = await updateBeer(id, req.body);
@@ -126,6 +103,48 @@ export async function modifyBeer(req, res) {
         }
 
         res.status(200).json(newBeer);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+}
+
+export async function addBeerPhotos(req, res) {
+    try {
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: 'Invalid beer id'
+            });
+        }
+
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({
+                message: "No files uploaded"
+            });
+        }
+
+        const beer = await findOneBeer(id);
+        if (!beer) {
+            return res.status(404).json({
+                message: 'Beer not Found'
+            });
+        }
+
+        const photos = await Promise.all(req.files.map(async (file) => {
+            const filename = `${randomUUID()}${path.extname(file.originalname)}`;
+            const filePath = path.join(process.cwd(), "uploads", "beers", filename);
+            await writeFile(filePath, file.buffer);
+
+            const url = `/uploads/beers/${filename}`;
+            return addPhotoToBeer(id, url);
+        }));
+
+        res.status(201).json(photos);
+
     } catch (error) {
         console.error(error);
 
