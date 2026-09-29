@@ -4,11 +4,11 @@
  
 | Champ      | Type         | Description                | Contraintes            |
 |------------|--------------|----------------------------|------------------------|
-| id         | SERIAL       | Identifiant unique         | PRIMARY KEY            |
+| id         | UUID         | Identifiant unique         | PRIMARY KEY DEFAULT gen_random_uuid() |
 | last_name  | VARCHAR(100) | Nom de l'utilisateur       | NOT NULL               |
 | first_name | VARCHAR(100) | Prénom de l'utilisateur    | NOT NULL               |
 | email      | VARCHAR(255) | Adresse email              | UNIQUE, NOT NULL       |
-| password   | VARCHAR(255) | Mot de passe hashé         | NOT NULL               |
+| hashed_password | VARCHAR(255) | Mot de passe hashé (argon2) | NOT NULL          |
 | created_at | TIMESTAMP    | Date de création du compte | NOT NULL DEFAULT NOW() |
  
 ### brewery
@@ -59,7 +59,7 @@
 | comment     | TEXT      | Texte de l'avis                 |                                          |
 | rating      | SMALLINT  | Note entre 1 et 5               | NOT NULL, CHECK (rating BETWEEN 1 AND 5) |
 | created_at  | TIMESTAMP | Date de l'avis                  | NOT NULL DEFAULT NOW()                   |
-| app_user_id | INTEGER   | Auteur de l'avis                | REFERENCES user(id) ON DELETE CASCADE    |
+| app_user_id | UUID      | Auteur de l'avis                | REFERENCES user(id) ON DELETE CASCADE    |
 | beer_id     | INTEGER   | Bière concernée (si applicable) | REFERENCES beer(id) ON DELETE CASCADE    |
 
 ### user-brewery-review
@@ -70,5 +70,5 @@
 | comment     | TEXT      | Texte de l'avis                     |                                          |
 | rating      | SMALLINT  | Note entre 1 et 5                   | NOT NULL, CHECK (rating BETWEEN 1 AND 5) |
 | created_at  | TIMESTAMP | Date de l'avis                      | NOT NULL DEFAULT NOW()                   |
-| app_user_id | INTEGER   | Auteur de l'avis                    | REFERENCES user(id)  ON DELETE CASCADE   |
+| app_user_id | UUID      | Auteur de l'avis                    | REFERENCES user(id)  ON DELETE CASCADE   |
 | brewery_id  | INTEGER   | Brasserie concernée (si applicable) | REFERENCES brewery(id) ON DELETE CASCADE |
