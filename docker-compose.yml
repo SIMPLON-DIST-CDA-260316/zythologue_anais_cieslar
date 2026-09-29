@@ -30,6 +30,7 @@ services:
       DB_NAME: ${POSTGRES_DB:-zythologue}
       DB_USER: ${POSTGRES_USER:-zythologue}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-zythologue}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "${API_PORT:-3000}:3000"
     volumes:

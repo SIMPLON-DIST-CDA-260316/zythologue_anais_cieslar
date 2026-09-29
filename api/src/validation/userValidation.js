@@ -11,3 +11,8 @@ export const createUserSchema = z.object({
         .regex(/[0-9]/, "Password must contain a digit")
         .regex(/[^A-Za-z0-9]/, "Password must contain a special character"),
 })
+
+export const loginSchema = z.object({
+    email: z.email().toLowerCase(),
+    password: z.string().min(1).max(64)
+})

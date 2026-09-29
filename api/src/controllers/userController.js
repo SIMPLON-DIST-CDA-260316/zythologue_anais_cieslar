@@ -1,5 +1,6 @@
 import {addUser, findUserByEmail} from "../repositories/userRepository.js";
 import argon2 from "argon2";
+import jwt from "jsonwebtoken";
 
 export async function createUser(req, res) {
     try{
@@ -23,6 +24,36 @@ export async function createUser(req, res) {
             });
         }
 
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal server error",
+        })
+    }
+}
+
+export async function loginUser(req, res) {
+    try {
+        const user = await findUserByEmail(req.body.email);
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid email or password",
+            })
+        }
+        const verified = await argon2.verify(user.hashed_password, req.body.password);
+        if (!verified) {
+            return res.status(401).json({
+                message: "Invalid email or password",
+            })
+        }
+
+        const token = jwt.sign(
+            {sub: user.id}, process.env.JWT_SECRET, {expiresIn: "7 days"}
+        )
+        return res.status(200).json({token})
+
+
+    } catch (error) {
         console.error(error);
 
         res.status(500).json({
