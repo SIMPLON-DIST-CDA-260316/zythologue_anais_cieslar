@@ -65,17 +65,17 @@ INSERT INTO ingredient (name) VALUES
 -- ------------------------------------------------------------
 -- APP_USER (10)
 -- ------------------------------------------------------------
-INSERT INTO app_user (last_name, first_name, email, password) VALUES
-    ('Dupont', 'Marie', 'marie.dupont@email.com', '$2b$10$hashedpassword1'),
-    ('Martin', 'Thomas', 'thomas.martin@email.com', '$2b$10$hashedpassword2'),
-    ('Bernard', 'Julie', 'julie.bernard@email.com', '$2b$10$hashedpassword3'),
-    ('Leroy', 'Nicolas', 'nicolas.leroy@email.com', '$2b$10$hashedpassword4'),
-    ('Moreau', 'Sophie', 'sophie.moreau@email.com', '$2b$10$hashedpassword5'),
-    ('Simon', 'Pierre', 'pierre.simon@email.com', '$2b$10$hashedpassword6'),
-    ('Laurent', 'Emma', 'emma.laurent@email.com', '$2b$10$hashedpassword7'),
-    ('Michel', 'Lucas', 'lucas.michel@email.com', '$2b$10$hashedpassword8'),
-    ('Garcia', 'Camille', 'camille.garcia@email.com', '$2b$10$hashedpassword9'),
-    ('David', 'Antoine', 'antoine.david@email.com', '$2b$10$hashedpassword10');
+INSERT INTO app_user (id, last_name, first_name, email, hashed_password) VALUES
+    ('a0000000-0000-4000-8000-000000000001', 'Dupont', 'Marie', 'marie.dupont@email.com', '$2b$10$hashedpassword1'),
+    ('a0000000-0000-4000-8000-000000000002', 'Martin', 'Thomas', 'thomas.martin@email.com', '$2b$10$hashedpassword2'),
+    ('a0000000-0000-4000-8000-000000000003', 'Bernard', 'Julie', 'julie.bernard@email.com', '$2b$10$hashedpassword3'),
+    ('a0000000-0000-4000-8000-000000000004', 'Leroy', 'Nicolas', 'nicolas.leroy@email.com', '$2b$10$hashedpassword4'),
+    ('a0000000-0000-4000-8000-000000000005', 'Moreau', 'Sophie', 'sophie.moreau@email.com', '$2b$10$hashedpassword5'),
+    ('a0000000-0000-4000-8000-000000000006', 'Simon', 'Pierre', 'pierre.simon@email.com', '$2b$10$hashedpassword6'),
+    ('a0000000-0000-4000-8000-000000000007', 'Laurent', 'Emma', 'emma.laurent@email.com', '$2b$10$hashedpassword7'),
+    ('a0000000-0000-4000-8000-000000000008', 'Michel', 'Lucas', 'lucas.michel@email.com', '$2b$10$hashedpassword8'),
+    ('a0000000-0000-4000-8000-000000000009', 'Garcia', 'Camille', 'camille.garcia@email.com', '$2b$10$hashedpassword9'),
+    ('a0000000-0000-4000-8000-000000000010', 'David', 'Antoine', 'antoine.david@email.com', '$2b$10$hashedpassword10');
 
 -- ------------------------------------------------------------
 -- BEER (50)
@@ -212,68 +212,68 @@ INSERT INTO beer_ingredient (beer_id, ingredient_id) VALUES
 -- USER_BEER_REVIEW
 -- ------------------------------------------------------------
 INSERT INTO user_beer_review (comment, rating, app_user_id, beer_id) VALUES
-    ('Excellente IPA, très aromatique !', 5, 1, 2),
-    ('Bonne blonde, légère et rafraîchissante', 4, 1, 1),
-    ('Un peu trop amère à mon goût', 3, 2, 2),
-    ('La meilleure saison que j''ai goûtée', 5, 2, 10),
-    ('Très bonne blanche, épicée juste comme il faut', 4, 3, 3),
-    ('Stout crémeux, parfait en hiver', 5, 3, 6),
-    ('Bonne session IPA, peu alcoolisée', 4, 4, 29),
-    ('La Gueuze est incroyable, très complexe', 5, 4, 15),
-    ('L''Orval est unique, j''adore les notes Brett', 5, 5, 33),
-    ('Chimay Bleue, une valeur sûre', 5, 5, 30),
-    ('Très bonne ambrée, notes de caramel prononcées', 4, 6, 20),
-    ('Porter bien équilibré', 4, 6, 41),
-    ('IPA bio aux arômes tropicaux surprenants', 4, 7, 46),
-    ('Blonde bio légère, idéale pour l''été', 4, 7, 45),
-    ('Westmalle Tripel, une merveille belge', 5, 8, 34),
-    ('La Telenn Du est originale avec le blé noir', 4, 8, 22),
-    ('Saison bio très sèche et épicée', 3, 9, 47),
-    ('Bonne sour, bien acidulée', 4, 9, 27),
-    ('Ninkasi Pale Ale très fruitée', 4, 10, 19),
-    ('Gallia Stout excellent', 5, 10, 6);
+    ('Excellente IPA, très aromatique !', 5, 'a0000000-0000-4000-8000-000000000001', 2),
+    ('Bonne blonde, légère et rafraîchissante', 4, 'a0000000-0000-4000-8000-000000000001', 1),
+    ('Un peu trop amère à mon goût', 3, 'a0000000-0000-4000-8000-000000000002', 2),
+    ('La meilleure saison que j''ai goûtée', 5, 'a0000000-0000-4000-8000-000000000002', 10),
+    ('Très bonne blanche, épicée juste comme il faut', 4, 'a0000000-0000-4000-8000-000000000003', 3),
+    ('Stout crémeux, parfait en hiver', 5, 'a0000000-0000-4000-8000-000000000003', 6),
+    ('Bonne session IPA, peu alcoolisée', 4, 'a0000000-0000-4000-8000-000000000004', 29),
+    ('La Gueuze est incroyable, très complexe', 5, 'a0000000-0000-4000-8000-000000000004', 15),
+    ('L''Orval est unique, j''adore les notes Brett', 5, 'a0000000-0000-4000-8000-000000000005', 33),
+    ('Chimay Bleue, une valeur sûre', 5, 'a0000000-0000-4000-8000-000000000005', 30),
+    ('Très bonne ambrée, notes de caramel prononcées', 4, 'a0000000-0000-4000-8000-000000000006', 20),
+    ('Porter bien équilibré', 4, 'a0000000-0000-4000-8000-000000000006', 41),
+    ('IPA bio aux arômes tropicaux surprenants', 4, 'a0000000-0000-4000-8000-000000000007', 46),
+    ('Blonde bio légère, idéale pour l''été', 4, 'a0000000-0000-4000-8000-000000000007', 45),
+    ('Westmalle Tripel, une merveille belge', 5, 'a0000000-0000-4000-8000-000000000008', 34),
+    ('La Telenn Du est originale avec le blé noir', 4, 'a0000000-0000-4000-8000-000000000008', 22),
+    ('Saison bio très sèche et épicée', 3, 'a0000000-0000-4000-8000-000000000009', 47),
+    ('Bonne sour, bien acidulée', 4, 'a0000000-0000-4000-8000-000000000009', 27),
+    ('Ninkasi Pale Ale très fruitée', 4, 'a0000000-0000-4000-8000-000000000010', 19),
+    ('Gallia Stout excellent', 5, 'a0000000-0000-4000-8000-000000000010', 6);
 
 -- ------------------------------------------------------------
 -- USER_BREWERY_REVIEW
 -- ------------------------------------------------------------
 INSERT INTO user_brewery_review (comment, rating, app_user_id, brewery_id) VALUES
-    ('Brasserie incontournable à Bruxelles', 5, 1, 6),
-    ('Cantillon, une institution ! Visite obligatoire', 5, 2, 6),
-    ('Très bonne brasserie parisienne', 4, 3, 2),
-    ('Dupont fait des saisons exceptionnelles', 5, 4, 4),
-    ('Orval, cadre magnifique et bière unique', 5, 5, 14),
-    ('Chimay propose des trappistes de grande qualité', 5, 6, 13),
-    ('Brasserie du Mont Blanc, belle gamme de bières', 4, 7, 1),
-    ('Ninkasi est une référence lyonnaise', 4, 8, 8),
-    ('La Débauche fait des bières audacieuses', 4, 9, 11),
-    ('Brasserie Sulauze, bravo pour le bio !', 5, 10, 20);
+    ('Brasserie incontournable à Bruxelles', 5, 'a0000000-0000-4000-8000-000000000001', 6),
+    ('Cantillon, une institution ! Visite obligatoire', 5, 'a0000000-0000-4000-8000-000000000002', 6),
+    ('Très bonne brasserie parisienne', 4, 'a0000000-0000-4000-8000-000000000003', 2),
+    ('Dupont fait des saisons exceptionnelles', 5, 'a0000000-0000-4000-8000-000000000004', 4),
+    ('Orval, cadre magnifique et bière unique', 5, 'a0000000-0000-4000-8000-000000000005', 14),
+    ('Chimay propose des trappistes de grande qualité', 5, 'a0000000-0000-4000-8000-000000000006', 13),
+    ('Brasserie du Mont Blanc, belle gamme de bières', 4, 'a0000000-0000-4000-8000-000000000007', 1),
+    ('Ninkasi est une référence lyonnaise', 4, 'a0000000-0000-4000-8000-000000000008', 8),
+    ('La Débauche fait des bières audacieuses', 4, 'a0000000-0000-4000-8000-000000000009', 11),
+    ('Brasserie Sulauze, bravo pour le bio !', 5, 'a0000000-0000-4000-8000-000000000010', 20);
 
 -- ------------------------------------------------------------
 -- USER_BEER_FAVORITE
 -- ------------------------------------------------------------
 INSERT INTO user_beer_favorite (app_user_id, beer_id) VALUES
-    (1, 2), (1, 15), (1, 33),
-    (2, 10), (2, 30), (2, 34),
-    (3, 3), (3, 6), (3, 22),
-    (4, 15), (4, 29),
-    (5, 33), (5, 34), (5, 35),
-    (6, 41), (6, 20),
-    (7, 45), (7, 46),
-    (8, 22), (8, 34),
-    (9, 27), (9, 47),
-    (10, 19), (10, 6);
+    ('a0000000-0000-4000-8000-000000000001', 2), ('a0000000-0000-4000-8000-000000000001', 15), ('a0000000-0000-4000-8000-000000000001', 33),
+    ('a0000000-0000-4000-8000-000000000002', 10), ('a0000000-0000-4000-8000-000000000002', 30), ('a0000000-0000-4000-8000-000000000002', 34),
+    ('a0000000-0000-4000-8000-000000000003', 3), ('a0000000-0000-4000-8000-000000000003', 6), ('a0000000-0000-4000-8000-000000000003', 22),
+    ('a0000000-0000-4000-8000-000000000004', 15), ('a0000000-0000-4000-8000-000000000004', 29),
+    ('a0000000-0000-4000-8000-000000000005', 33), ('a0000000-0000-4000-8000-000000000005', 34), ('a0000000-0000-4000-8000-000000000005', 35),
+    ('a0000000-0000-4000-8000-000000000006', 41), ('a0000000-0000-4000-8000-000000000006', 20),
+    ('a0000000-0000-4000-8000-000000000007', 45), ('a0000000-0000-4000-8000-000000000007', 46),
+    ('a0000000-0000-4000-8000-000000000008', 22), ('a0000000-0000-4000-8000-000000000008', 34),
+    ('a0000000-0000-4000-8000-000000000009', 27), ('a0000000-0000-4000-8000-000000000009', 47),
+    ('a0000000-0000-4000-8000-000000000010', 19), ('a0000000-0000-4000-8000-000000000010', 6);
 
 -- ------------------------------------------------------------
 -- USER_BREWERY_FAVORITE
 -- ------------------------------------------------------------
 INSERT INTO user_brewery_favorite (app_user_id, brewery_id) VALUES
-    (1, 6), (1, 3),
-    (2, 4), (2, 13),
-    (3, 2), (3, 8),
-    (4, 6), (4, 14),
-    (5, 13), (5, 14), (5, 15),
-    (6, 8), (6, 11),
-    (7, 20),
-    (8, 15), (8, 9),
-    (9, 11),
-    (10, 2), (10, 8);
+    ('a0000000-0000-4000-8000-000000000001', 6), ('a0000000-0000-4000-8000-000000000001', 3),
+    ('a0000000-0000-4000-8000-000000000002', 4), ('a0000000-0000-4000-8000-000000000002', 13),
+    ('a0000000-0000-4000-8000-000000000003', 2), ('a0000000-0000-4000-8000-000000000003', 8),
+    ('a0000000-0000-4000-8000-000000000004', 6), ('a0000000-0000-4000-8000-000000000004', 14),
+    ('a0000000-0000-4000-8000-000000000005', 13), ('a0000000-0000-4000-8000-000000000005', 14), ('a0000000-0000-4000-8000-000000000005', 15),
+    ('a0000000-0000-4000-8000-000000000006', 8), ('a0000000-0000-4000-8000-000000000006', 11),
+    ('a0000000-0000-4000-8000-000000000007', 20),
+    ('a0000000-0000-4000-8000-000000000008', 15), ('a0000000-0000-4000-8000-000000000008', 9),
+    ('a0000000-0000-4000-8000-000000000009', 11),
+    ('a0000000-0000-4000-8000-000000000010', 2), ('a0000000-0000-4000-8000-000000000010', 8);

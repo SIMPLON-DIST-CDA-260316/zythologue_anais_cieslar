@@ -15,11 +15,11 @@ CREATE TABLE ingredient (
                         );
 
 CREATE TABLE app_user (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     last_name VARCHAR(100) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
                       );
 
@@ -29,6 +29,8 @@ CREATE TABLE beer (
     description TEXT,
     alcohol_deg NUMERIC,
     price NUMERIC,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID REFERENCES app_user(id) ON DELETE RESTRICT,
     brewery_id INTEGER REFERENCES brewery(id) ON DELETE RESTRICT
                   );
 
@@ -38,13 +40,13 @@ CREATE TABLE photo (
                    );
 
 CREATE TABLE user_beer_favorite (
-    app_user_id INTEGER REFERENCES app_user(id) ON DELETE CASCADE,
+    app_user_id UUID REFERENCES app_user(id) ON DELETE CASCADE,
     beer_id INTEGER REFERENCES beer(id) ON DELETE CASCADE,
     UNIQUE (app_user_id, beer_id)
                                 );
 
 CREATE TABLE user_brewery_favorite (
-    app_user_id INTEGER REFERENCES app_user(id) ON DELETE CASCADE,
+    app_user_id UUID REFERENCES app_user(id) ON DELETE CASCADE,
     brewery_id INTEGER REFERENCES brewery(id) ON DELETE CASCADE,
     UNIQUE (app_user_id, brewery_id)
                                    );
@@ -54,7 +56,7 @@ CREATE TABLE user_beer_review (
     comment TEXT,
     rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    app_user_id INTEGER REFERENCES app_user(id) ON DELETE CASCADE,
+    app_user_id UUID REFERENCES app_user(id) ON DELETE CASCADE,
     beer_id INTEGER REFERENCES beer(id) ON DELETE CASCADE,
     UNIQUE (app_user_id, beer_id)
                               );
@@ -64,7 +66,7 @@ CREATE TABLE user_brewery_review (
     comment TEXT,
     rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    app_user_id INTEGER REFERENCES app_user(id) ON DELETE CASCADE,
+    app_user_id UUID REFERENCES app_user(id) ON DELETE CASCADE,
     brewery_id INTEGER REFERENCES brewery(id) ON DELETE CASCADE,
     UNIQUE (app_user_id, brewery_id)
                                  );
