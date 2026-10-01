@@ -36,19 +36,19 @@ export async function loginUser(req, res) {
     try {
         const user = await findUserByEmail(req.body.email);
         if (!user) {
-            return res.status(401).json({
+            return res.status(400).json({
                 message: "Invalid email or password",
             })
         }
         const verified = await argon2.verify(user.hashed_password, req.body.password);
         if (!verified) {
-            return res.status(401).json({
+            return res.status(400).json({
                 message: "Invalid email or password",
             })
         }
 
         const token = jwt.sign(
-            {sub: user.id}, process.env.JWT_SECRET, {expiresIn: "7 days"}
+            {userId: user.id}, process.env.JWT_SECRET, {expiresIn: "7 days"}
         )
         return res.status(200).json({token})
 

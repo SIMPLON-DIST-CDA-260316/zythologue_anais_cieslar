@@ -57,7 +57,7 @@ export async function createBeer(req, res) {
             });
         }
 
-        const beer = await addBeer(req.body);
+        const beer = await addBeer(req.body, req.user.id);
         res.status(201).json(beer);
 
     } catch (error) {
@@ -94,13 +94,15 @@ export async function modifyBeer(req, res) {
             }
         }
 
-        const newBeer = await updateBeer(id, req.body);
-
-        if (!newBeer) {
-            return res.status(404).json({
-                message: "Beer not found"
-            });
+        const beer = await findOneBeer(id);
+        if (!beer) {
+            return res.status(404).json({ message: 'Beer not found' });
         }
+        if (beer.created_by !== req.user.id) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        const newBeer = await updateBeer(id, req.body);
 
         res.status(200).json(newBeer);
     } catch (error) {
@@ -133,6 +135,9 @@ export async function addBeerPhotos(req, res) {
                 message: 'Beer not Found'
             });
         }
+        if (beer.created_by !== req.user.id) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
 
         const photos = await Promise.all(req.files.map(async (file) => {
             const filename = `${randomUUID()}${path.extname(file.originalname)}`;
@@ -163,15 +168,17 @@ export async function removeBeer(req, res) {
             });
         }
 
-        const beer = await deleteBeer(id)
-
+        const beer = await findOneBeer(id);
         if (!beer) {
-            return res.status(404).json({
-                message: 'Beer not Found'
-            });
+            return res.status(404).json({ message: 'Beer not found' });
+        }
+        if (beer.created_by !== req.user.id) {
+            return res.status(403).json({ message: 'Forbidden' });
         }
 
-        res.status(200).json(beer);
+        const newBeer = await deleteBeer(id)
+
+        res.status(200).json(newBeer);
 
     } catch (error) {
         console.error(error);

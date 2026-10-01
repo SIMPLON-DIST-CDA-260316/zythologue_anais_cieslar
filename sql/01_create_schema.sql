@@ -29,6 +29,8 @@ CREATE TABLE beer (
     description TEXT,
     alcohol_deg NUMERIC,
     price NUMERIC,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID REFERENCES app_user(id) ON DELETE RESTRICT,
     brewery_id INTEGER REFERENCES brewery(id) ON DELETE RESTRICT
                   );
 

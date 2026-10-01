@@ -9,7 +9,7 @@ export async function findAllBeers() {
 
 export async function findOneBeer(id) {
     const result = await pool.query(
-        `SELECT b.id AS beer_id, b.name AS beer_name, b.description,b.alcohol_deg, b.price, brewery.name AS brewery_name,
+        `SELECT b.id AS beer_id, b.name AS beer_name, b.description,b.alcohol_deg, b.price, brewery.name AS brewery_name, b.created_by,
              ( SELECT array_agg(i.name) FROM beer_ingredient bi JOIN ingredient i ON i.id = bi.ingredient_id WHERE bi.beer_id = b.id ) AS ingredients,
              ( SELECT array_agg(c.name) FROM beer_category bc JOIN category c ON c.id = bc.category_id WHERE bc.beer_id = b.id ) AS categories,
              ( SELECT array_agg(p.url) FROM photo_beer pb JOIN photo p ON p.id = pb.photo_id WHERE pb.beer_id = b.id ) AS photos
@@ -18,10 +18,10 @@ export async function findOneBeer(id) {
     return result.rows[0];
 }
 
-export async function addBeer(beer) {
+export async function addBeer(beer, userId) {
     const result = await pool.query(
-        `INSERT INTO beer (name, description, alcohol_deg, price, brewery_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [beer.name, beer.description, beer.alcohol_deg, beer.price, beer.brewery_id]
+        `INSERT INTO beer (name, description, alcohol_deg, price, brewery_id, created_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [beer.name, beer.description, beer.alcohol_deg, beer.price, beer.brewery_id, userId]
     );
     return result.rows[0];
 }

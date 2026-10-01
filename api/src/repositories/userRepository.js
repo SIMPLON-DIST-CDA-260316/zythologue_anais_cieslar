@@ -8,6 +8,14 @@ export async function findUserByEmail(email) {
     return result.rows[0];
 }
 
+export async function findUserById(id) {
+    const result = await pool.query(
+        `SELECT id FROM app_user WHERE id = $1`,
+        [id]
+    );
+    return result.rows[0];
+}
+
 export async function addUser(user) {
     const result = await pool.query(
         `INSERT INTO app_user (last_name, first_name, email, hashed_password) VALUES ($1, $2, $3, $4) RETURNING last_name, first_name, email, created_at`,
