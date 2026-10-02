@@ -2,9 +2,12 @@ import express from 'express';
 import path from 'node:path';
 import beerRoutes from './routes/beerRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(cors({ origin: 'http://localhost:5173' }));
 
 app.use(express.json());
 
