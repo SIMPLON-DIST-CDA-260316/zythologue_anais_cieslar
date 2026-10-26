@@ -20,6 +20,7 @@ import {useState} from "react";
 import {loginSchema} from "@/lib/validations.ts";
 import {Eye, EyeOff} from "lucide-react";
 import {useNavigate} from "react-router";
+import {useAuth} from "@/contexts/auth-context.tsx";
 
 export function LoginForm({
   className,
@@ -28,6 +29,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{ email?: string[]; password?: string[] }>({})
   const [showPassword, setShowPassword] = useState<boolean>(false)
+  const { login } = useAuth()
   const navigate = useNavigate()
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
@@ -57,7 +59,7 @@ export function LoginForm({
         return
       }
 
-      localStorage.setItem("token", data.token)
+      login(data.token)
       navigate("/dashboard")
     } catch {
       setError("Impossible de contacter le serveur")
@@ -116,9 +118,6 @@ export function LoginForm({
               <Field>
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit">Login</Button>
-                {/*<Button variant="outline" type="button">*/}
-                {/*  Login with Google*/}
-                {/*</Button>*/}
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription>

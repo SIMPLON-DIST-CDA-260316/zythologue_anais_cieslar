@@ -46,11 +46,13 @@ npm run preview   # prévisualiser le build
 
 ```text
 src/
-├── main.tsx              (point d'entrée, BrowserRouter)
-├── App.tsx               (déclaration des routes)
+├── main.tsx              (point d'entrée, BrowserRouter + AuthProvider)
+├── App.tsx               (déclaration des routes + ProtectedRoute)
+├── contexts/
+│   └── auth-context.tsx  (AuthProvider + hook useAuth)
 ├── pages/
 │   ├── login.tsx         (page de connexion)
-│   └── dashboard.tsx     (page après connexion)
+│   └── dashboard.tsx     (page protégée, bouton de déconnexion)
 ├── components/
 │   ├── login-form.tsx    (formulaire de connexion)
 │   └── ui/               (composants shadcn/ui)
@@ -64,7 +66,7 @@ src/
 | Chemin       | Page            | Description                                   |
 |--------------|-----------------|-----------------------------------------------|
 | `/login`     | `LoginPage`     | Formulaire de connexion                       |
-| `/dashboard` | `DashboardPage` | Page affichée après connexion                 |
+| `/dashboard` | `DashboardPage` | 🔒 Page protégée (connexion requise)          |
 | `*`          | —               | Redirection vers `/login`                     |
 
 ## Parcours de connexion
@@ -73,11 +75,36 @@ src/
 2. Les champs sont validés avec `loginSchema` (Zod) ; les erreurs s'affichent sous chaque champ.
 3. Si c'est valide, le formulaire envoie `POST ${VITE_API_URL}/auth/login`.
 4. En cas d'erreur API, le `message` renvoyé est affiché ; si l'API est injoignable : « Impossible de contacter le serveur ».
-5. En cas de succès, le token JWT est stocké dans `localStorage` (clé `token`) puis l'utilisateur est redirigé vers `/dashboard`.
+5. En cas de succès, le formulaire appelle `login(token)` du contexte, puis redirige vers `/dashboard`.
+
+## Authentification (`AuthContext`)
+
+L'état de connexion est géré par un contexte React (`src/contexts/auth-context.tsx`), fourni à toute l'app par `AuthProvider` dans `main.tsx`.
+
+Le contexte expose, via le hook `useAuth()` :
+
+| Valeur          | Rôle                                                                 |
+|-----------------|----------------------------------------------------------------------|
+| `authenticated` | `true` si l'utilisateur est connecté                                 |
+| `login(token)`  | stocke le token dans `localStorage` (clé `token`) et passe à `true`  |
+| `logout()`      | supprime le token de `localStorage` et passe à `false`               |
+
+Au chargement de l'app, `authenticated` est initialisé à partir de `localStorage` : un rechargement de page (F5) ne déconnecte donc pas l'utilisateur.
+
+### Route protégée
+
+Le composant `ProtectedRoute` (`App.tsx`) entoure les routes qui demandent une connexion. Il lit `authenticated` via `useAuth()` :
+- connecté → affiche la page demandée (`<Outlet />`) ;
+- non connecté → redirige vers `/login`.
+
+### Déconnexion
+
+Le bouton « Logout » du dashboard appelle `logout()`. Le changement de state provoque un nouveau rendu de `ProtectedRoute`, qui redirige vers `/login` sans rechargement de page ni `navigate` explicite.
+
+> La protection côté front ne sert qu'à l'expérience utilisateur : un token peut être modifié dans `localStorage`. La sécurité réelle est assurée par l'API (middleware `authenticate`), qui vérifie le token à chaque requête protégée.
 
 ## Limites actuelles / à faire
 
-- `/dashboard` n'est pas protégée : on peut y accéder sans token. Il faudra une route protégée qui redirige vers `/login` si aucun token valide n'est présent.
-- Pas encore de déconnexion (suppression du token).
+- La validité du token (signature, expiration à 7 jours) n'est pas vérifiée côté front : un token expiré laisse accéder au dashboard jusqu'au premier appel API, qui renverra `401`.
 - Le token n'est pas encore envoyé à l'API (header `Authorization: Bearer <token>`) : aucune donnée n'est affichée sur le dashboard pour l'instant.
 - Pas de page d'inscription (l'inscription se fait via `POST /auth/register` sur l'API).
