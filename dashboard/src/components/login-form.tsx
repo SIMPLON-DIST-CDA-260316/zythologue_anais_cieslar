@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import {useState} from "react";
 import {loginSchema} from "@/lib/validations.ts";
 import {Eye, EyeOff} from "lucide-react";
+import {useNavigate} from "react-router";
 
 export function LoginForm({
   className,
@@ -27,6 +28,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{ email?: string[]; password?: string[] }>({})
   const [showPassword, setShowPassword] = useState<boolean>(false)
+  const navigate = useNavigate()
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -56,6 +58,7 @@ export function LoginForm({
       }
 
       localStorage.setItem("token", data.token)
+      navigate("/dashboard")
     } catch {
       setError("Impossible de contacter le serveur")
     }
