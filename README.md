@@ -1,6 +1,6 @@
 # Zythologue
 
-API REST + base PostgreSQL pour une application de découverte de bières artisanales.
+API REST + base PostgreSQL + dashboard React pour une application de découverte de bières artisanales.
 
 ![Visuel du projet](img/bier.png)
 
@@ -11,8 +11,10 @@ Ce dépôt contient :
 - une modélisation de données (dictionnaire + règles de gestion),
 - un schema SQL PostgreSQL,
 - des données de test,
-- une API REST en Node.js / Express,
-- une configuration Docker Compose pour lancer l'API et PostgreSQL ensemble en local.
+- une API REST en Node.js / Express, sécurisée par comptes utilisateurs (argon2 + JWT),
+- un dashboard React / TypeScript / Vite (page de connexion branchée sur l'API),
+- des diagrammes de séquence UML du parcours d'authentification,
+- une configuration Docker Compose pour lancer PostgreSQL, l'API et le dashboard ensemble en local.
 
 ## Arborescence utile
 
@@ -29,15 +31,27 @@ zythologue/
 │   ├── uploads/           (photos uploadées, ignoré par git)
 │   └── src/
 │       ├── server.js
-│       ├── controllers/
+│       ├── controllers/   (beerController, userController)
 │       ├── repositories/
-│       ├── routes/
-│       ├── middlewares/   (ex: upload Multer)
+│       ├── routes/        (beerRoutes, authRoutes)
+│       ├── middlewares/   (upload Multer, authenticate JWT)
 │       ├── validation/    (schémas Zod)
 │       └── database/
+├── dashboard/
+│   ├── Dockerfile
+│   ├── README.md          (documentation du front)
+│   └── src/
+│       ├── App.tsx        (routes React Router)
+│       ├── pages/         (login, dashboard)
+│       ├── components/    (login-form + composants shadcn/ui)
+│       └── lib/           (validations Zod côté client)
 ├── docs/
 │   ├── dictionnaire_donnees.md
-│   └── regles_gestion.md
+│   ├── regles_gestion.md
+│   └── diagrames sequences/
+│       ├── diagram-enregistrement.png
+│       ├── diagram-login.png
+│       └── diagram-authorization.png
 └── sql/
     ├── 01_create_schema.sql
     ├── 02_seed.sql
@@ -60,10 +74,17 @@ zythologue/
 ```bash
 cd /chemin/vers/zythologue
 cp .env.example .env
+# renseigner JWT_SECRET dans .env (obligatoire pour signer les tokens)
 docker compose up -d --build
 ```
 
-L'API est alors disponible sur `http://localhost:3000` et Postgres sur `localhost:5432`.
+L'API est alors disponible sur `http://localhost:3000`, le dashboard sur `http://localhost:5173` et Postgres sur `localhost:5432`.
+
+`JWT_SECRET` est vide dans `.env.example` : sans valeur, la connexion (`POST /auth/login`) échoue. Mettre une chaîne longue et aléatoire, par exemple générée avec :
+
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
 
 ## Commandes Docker (présentées et validées)
 
@@ -122,17 +143,28 @@ Créer une connexion PostgreSQL avec les valeurs de `.env` (host `localhost`), p
 Une fois les conteneurs démarrés, l'API est accessible sur `http://localhost:3000`.
 
 ```text
-GET    /beers               → liste des bières (avec brasserie, ingrédients, catégories, photos)
-GET    /beers/:id           → détail d'une bière
-POST   /beers                → créer une bière (validation Zod)
-PATCH  /beers/:id            → mettre à jour une bière (validation Zod)
-DELETE /beers/:id            → supprimer une bière
-POST   /beers/:id/photos     → uploader une ou plusieurs photos pour une bière (multipart/form-data)
+POST   /auth/register        → créer un compte (mot de passe hashé avec argon2)
+POST   /auth/login           → se connecter, renvoie un token JWT (valable 7 jours)
+
+GET    /beers                → liste des bières (avec brasserie, ingrédients, catégories, photos)
+GET    /beers/:id            → détail d'une bière
+POST   /beers                → 🔒 créer une bière (validation Zod)
+PATCH  /beers/:id            → 🔒 mettre à jour une bière (créateur uniquement)
+DELETE /beers/:id            → 🔒 supprimer une bière (créateur uniquement)
+POST   /beers/:id/photos     → 🔒 uploader des photos (créateur uniquement, multipart/form-data)
 ```
+
+🔒 = route protégée : envoyer le header `Authorization: Bearer <token>`. Le middleware `authenticate` vérifie le token puis place l'utilisateur dans `req.user`. Les modifications ne sont autorisées qu'au créateur de la bière (`beer.created_by === req.user.id`), sinon `403 Forbidden`.
+
+Les diagrammes de séquence (enregistrement, connexion, autorisation) sont dans [`docs/diagrames sequences/`](docs/diagrames%20sequences/).
 
 Documentation détaillée de chaque endpoint (corps de requête, réponses, erreurs) : voir [`api/README.md`](api/README.md).
 
 Le rechargement à chaud est actif en développement (`node --watch`) : toute modification dans `api/src/` est censée être prise en compte automatiquement. En pratique, sur Mac, le bind mount Docker rate parfois les évènements de changement de fichier — si le comportement observé ne correspond pas au code, faire `docker compose restart api` avant de chercher un bug ailleurs.
+
+## Dashboard
+
+Application React (Vite + TypeScript + Tailwind + shadcn/ui) lancée par Docker Compose sur `http://localhost:5173`. L'URL de l'API lui est passée via `VITE_API_URL`. Détails : voir [`dashboard/README.md`](dashboard/README.md).
 
 ## Etat actuel du projet
 
@@ -144,3 +176,6 @@ Le rechargement à chaud est actif en développement (`node --watch`) : toute mo
 - CRUD complet sur `beer` (create, read, update, delete), avec validation des données via Zod.
 - Upload de photos pour les bières (Multer, stockage disque, exposition via `GET /beers`).
 - Pas encore de CRUD ni d'upload de photos pour `brewery` (même pattern à répliquer plus tard).
+- Authentification en place : inscription (argon2), connexion (JWT), routes d'écriture protégées et vérification du propriétaire (`created_by`).
+- Diagrammes de séquence UML réalisés pour l'enregistrement, la connexion et l'autorisation.
+- Dashboard : page de connexion fonctionnelle (validation Zod, appel à `/auth/login`, token stocké dans `localStorage`, redirection vers `/dashboard`). La page `/dashboard` n'est pas encore protégée côté front et ne contient qu'un message de bienvenue.
