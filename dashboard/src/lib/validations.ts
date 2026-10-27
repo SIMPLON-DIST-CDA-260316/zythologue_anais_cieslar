@@ -26,3 +26,11 @@ export const registerSchema = z.object({
     message: "Les mots de passe ne correspondent pas",
     path: ["confirm_password"],
 })
+
+export const beerSchema = z.object({
+    name: z.string().trim().min(1, "Le nom est obligatoire"),
+    description: z.string(),
+    alcohol_deg: z.coerce.number().min(0, "Le degré d'alcool doit être positif"),
+    price: z.coerce.number().positive("Le prix doit être supérieur à 0"),
+    brewery_id: z.coerce.number().min(1, "Veuillez choisir une brasserie"),
+})

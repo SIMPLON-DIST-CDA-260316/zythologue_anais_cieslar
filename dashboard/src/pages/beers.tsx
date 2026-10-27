@@ -10,6 +10,7 @@ import {
 import {Trash2Icon} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {useAuth} from "@/contexts/auth-context.tsx";
+import {BeerFormDialog} from "@/components/beer-form-dialog.tsx";
 
 type Beer = {
     beer_id: number
@@ -28,13 +29,17 @@ export default function BeersPage() {
     const {isAuth, token} = useAuth()
     const [error, setError] = useState<string | null>(null);
 
+    async function fetchBeers() {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/beers`);
+        return await response.json();
+    }
+
+    async function refreshBeers() {
+        setBeers(await fetchBeers())
+    }
+
     useEffect(() => {
-        async function fetchBeers() {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/beers`);
-            const data = await response.json();
-            setBeers(data)
-        }
-        fetchBeers()
+        fetchBeers().then((data) => setBeers(data))
     }, [])
 
     async function handleDelete(beer_id: number) {
@@ -64,7 +69,7 @@ export default function BeersPage() {
 
     return (
         <div>
-
+        <BeerFormDialog onSuccess={refreshBeers} />
         <Table>
             <TableHeader>
             <TableRow>
