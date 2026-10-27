@@ -1,27 +1,29 @@
 import { createContext, useContext, useState } from "react"
 
 type AuthContextType = {
-    authenticated: boolean
+    isAuth: boolean
     login: (token: string) => void
     logout: () => void
+    token: string | null
 }
 
 const AuthContext = createContext<AuthContextType| null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [authenticated, setAuthenticated] = useState(localStorage.getItem("token")!==null)
+    const [token, setToken] = useState<string | null>(localStorage.getItem("token"))
+    const isAuth = token !== null
 
     function login(token: string) {
         localStorage.setItem("token", token)
-        setAuthenticated(true)
+        setToken(token)
     }
     function logout() {
         localStorage.removeItem("token")
-        setAuthenticated(false)
+        setToken(null)
     }
 
     return (
-        <AuthContext.Provider value={{authenticated, login, logout}}>
+        <AuthContext.Provider value={{isAuth, login, logout, token}}>
             {children}
         </AuthContext.Provider>
     )

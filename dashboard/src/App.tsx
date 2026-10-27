@@ -6,8 +6,8 @@ import RegisterPage from "@/pages/register.tsx";
 import {useAuth} from "@/contexts/auth-context.tsx";
 
 function ProtectedRoute() {
-    const {authenticated} = useAuth();
-    return authenticated ? <Outlet /> : <Navigate to="/login" replace />
+    const {isAuth} = useAuth();
+    return isAuth ? <Outlet /> : <Navigate to="/login" replace />
 }
 
 
