@@ -41,5 +41,23 @@ services:
         condition: service_healthy
     command: npm run dev
 
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - api
+    develop:
+      watch:
+        - action: sync
+          path: ./dashboard
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./dashboard/package.json
+
 volumes:
   postgres18_cluster:

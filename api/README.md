@@ -1,5 +1,186 @@
 # API Documentation
 
+## Authentication
+
+Les routes d'écriture sur les bières sont protégées. Le parcours est le suivant :
+
+1. `POST /auth/register` crée un compte (mot de passe hashé avec argon2).
+2. `POST /auth/login` vérifie les identifiants et renvoie un token JWT (payload `{ userId }`, signé avec `JWT_SECRET`, valable 7 jours).
+3. Le client envoie ce token sur chaque route protégée :
+
+```http
+Authorization: Bearer <token>
+```
+
+Le middleware `authenticate` (`src/middlewares/auth.js`) vérifie le token, retrouve l'utilisateur en base et le place dans `req.user`. Les contrôleurs comparent ensuite `beer.created_by` à `req.user.id` : seul le créateur d'une bière peut la modifier, la supprimer ou y ajouter des photos.
+
+Diagrammes de séquence : voir [`docs/diagrames sequences/`](../docs/diagrames%20sequences/).
+
+### Register
+
+#### Endpoint
+
+POST `/auth/register`
+
+#### Description
+
+Create a user account. The body is validated with Zod; the email is lowercased and the password is hashed with argon2 before being stored in `app_user`.
+
+Password rules: 12 to 64 characters, at least one uppercase letter, one lowercase letter, one digit and one special character.
+
+#### Request body
+
+```json
+{
+  "last_name": "Dupont",
+  "first_name": "Marie",
+  "email": "marie.dupont@example.com",
+  "password": "MotDePasse123!"
+}
+```
+
+#### Response
+
+##### Success response
+###### Status: 201 Created
+
+```json
+{
+  "last_name": "Dupont",
+  "first_name": "Marie",
+  "email": "marie.dupont@example.com",
+  "created_at": "2026-10-07T09:12:45.123Z"
+}
+```
+
+Le hash du mot de passe et l'id ne sont jamais renvoyés.
+
+##### Error responses
+
+###### Missing or invalid field
+
+Status: **400 Bad Request**
+
+```json
+{
+  "message": "password: Password must be at least 12 characters"
+}
+```
+
+Autres messages possibles : `"last_name: Last name cannot be empty"`, `"first_name: First name cannot be empty"`, `"password: Password must contain an uppercase letter"` (idem pour minuscule, chiffre, caractère spécial), `"password: Password must be at most 64 characters"`, ou le message Zod pour un email invalide.
+
+###### Email already used
+
+Status: **409 Conflict**
+
+```json
+{
+  "message": "User already exists"
+}
+```
+
+###### Internal server error
+
+Status: **500 Internal Server Error**
+
+```json
+{
+  "message": "Internal server error"
+}
+```
+
+### Login
+
+#### Endpoint
+
+POST `/auth/login`
+
+#### Description
+
+Check the credentials (argon2 verify) and return a signed JWT.
+
+#### Request body
+
+```json
+{
+  "email": "marie.dupont@example.com",
+  "password": "MotDePasse123!"
+}
+```
+
+#### Response
+
+##### Success response
+###### Status: 200 OK
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+##### Error responses
+
+###### Invalid field
+
+Status: **400 Bad Request** — format Zod `"<champ>: <message>"` (email invalide, mot de passe vide ou > 64 caractères).
+
+###### Wrong email or password
+
+Status: **400 Bad Request**
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+Le même message est renvoyé que l'email soit inconnu ou que le mot de passe soit faux, pour ne pas révéler quels emails ont un compte.
+
+###### Internal server error
+
+Status: **500 Internal Server Error**
+
+```json
+{
+  "message": "Internal server error"
+}
+```
+
+### Errors common to protected routes
+
+Ces erreurs peuvent être renvoyées par toutes les routes marquées 🔒 ci-dessous.
+
+###### Missing token
+
+Status: **401 Unauthorized** — header `Authorization` absent ou ne commençant pas par `Bearer `, ou utilisateur du token introuvable en base.
+
+```json
+{
+  "message": "Authentication required"
+}
+```
+
+###### Invalid or expired token
+
+Status: **401 Unauthorized**
+
+```json
+{
+  "message": "Invalid or expired token"
+}
+```
+
+###### Not the owner of the beer
+
+Status: **403 Forbidden** — l'utilisateur connecté n'est pas le créateur de la bière (`PATCH`, `DELETE`, `POST /photos`).
+
+```json
+{
+  "message": "Forbidden"
+}
+```
+
 ## Beers
 
 ### Get all beers
@@ -70,6 +251,7 @@ GET /beers/1
   "alcohol_deg": "5.00",
   "price": "3.50",
   "brewery_name": "Brasserie du Mont Blanc",
+  "created_by": "3f2c9a1e-8b7d-4c5e-9f10-2a6b8d4e1c37",
   "ingredients": ["Malt d'orge", "Houblon Saaz", "Levure ale", "Eau"],
   "categories": ["Blonde"],
   "photos": ["/uploads/beers/956b400c-76c1-4508-b8fd-8eedf756fdf5.jpg"]
@@ -96,7 +278,7 @@ GET /beers/1
 }
 ```
 
-### Create one beer
+### Create one beer 🔒
 
 #### Endpoint
 
@@ -104,7 +286,7 @@ POST `/beers`
 
 #### Description
 
-Create a new beer. The request body is validated with Zod before reaching the database, and `brewery_id` must reference an existing brewery.
+Create a new beer. Requires a valid token. The request body is validated with Zod before reaching the database, and `brewery_id` must reference an existing brewery. The connected user (`req.user.id`) is saved as the beer's creator (`created_by`).
 
 #### Request body
 
@@ -130,13 +312,16 @@ Create a new beer. The request body is validated with Zod before reaching the da
   "description": "Une IPA de test",
   "alcohol_deg": "6.50",
   "price": "4.50",
-  "brewery_id": 1
+  "brewery_id": 1,
+  "created_by": "3f2c9a1e-8b7d-4c5e-9f10-2a6b8d4e1c37"
 }
 ```
 
 Note : la réponse de création renvoie les noms de colonnes bruts de la table `beer` (`id`, `name`, `brewery_id`...), différents de ceux renvoyés par `GET /beers`/`GET /beers/:id` (`beer_id`, `beer_name`, `brewery_name`...). C'est une incohérence connue, pas corrigée pour l'instant.
 
 ##### Error responses
+
+En plus des erreurs `401` / `403` communes aux routes protégées (voir [plus haut](#errors-common-to-protected-routes)) :
 
 Les erreurs de validation sont générées par Zod, au format `"<champ>: <message>"`.
 
@@ -172,7 +357,7 @@ Status: **500 Internal Server Error**
 }
 ```
 
-### Update one beer
+### Update one beer 🔒
 
 #### Endpoint
 
@@ -180,7 +365,7 @@ PATCH `/beers/:id`
 
 #### Description
 
-Update one or more fields of an existing beer. All fields are optional, but at least one must be provided. If `brewery_id` is provided, it must reference an existing brewery.
+Update one or more fields of an existing beer. All fields are optional, but at least one must be provided. If `brewery_id` is provided, it must reference an existing brewery. Only the creator of the beer can update it.
 
 #### Request body
 
@@ -202,11 +387,14 @@ Update one or more fields of an existing beer. All fields are optional, but at l
   "description": "White beer",
   "alcohol_deg": "4.80",
   "price": "3.80",
-  "brewery_id": 1
+  "brewery_id": 1,
+  "created_by": "3f2c9a1e-8b7d-4c5e-9f10-2a6b8d4e1c37"
 }
 ```
 
 ##### Error responses
+
+En plus des erreurs `401` / `403` communes aux routes protégées (voir [plus haut](#errors-common-to-protected-routes)) :
 
 ###### Invalid beer id
 
@@ -268,7 +456,7 @@ Status: **500 Internal Server Error**
 }
 ```
 
-### Add photos to a beer
+### Add photos to a beer 🔒
 
 #### Endpoint
 
@@ -276,7 +464,7 @@ POST `/beers/:id/photos`
 
 #### Description
 
-Upload one or more photos for an existing beer. The request must be sent as `multipart/form-data`, with each file under the field name `photos` (repeat the field to send several files in one request).
+Upload one or more photos for an existing beer. Only the creator of the beer can add photos. The request must be sent as `multipart/form-data`, with each file under the field name `photos` (repeat the field to send several files in one request).
 
 Accepted file types: `image/jpeg`, `image/png`, `image/webp`. Maximum size: 5 MB per file. No limit on the number of files.
 
@@ -284,6 +472,7 @@ Accepted file types: `image/jpeg`, `image/png`, `image/webp`. Maximum size: 5 MB
 
 ```http
 POST /beers/1/photos
+Authorization: Bearer <token>
 Content-Type: multipart/form-data
 
 photos: <file1.jpg>
@@ -305,6 +494,8 @@ photos: <file2.png>
 Les fichiers sont servis statiquement : l'URL renvoyée est directement utilisable, préfixée par l'adresse de l'API (ex: `http://localhost:3000/uploads/beers/....jpg`).
 
 ##### Error responses
+
+En plus des erreurs `401` / `403` communes aux routes protégées (voir [plus haut](#errors-common-to-protected-routes)) :
 
 ###### Invalid beer id
 
@@ -366,7 +557,7 @@ Status: **500 Internal Server Error**
 }
 ```
 
-### Delete one beer
+### Delete one beer 🔒
 
 #### Endpoint
 
@@ -374,12 +565,13 @@ DELETE `/beers/:id`
 
 #### Description
 
-Delete an existing beer by its identifier.
+Delete an existing beer by its identifier. Only the creator of the beer can delete it.
 
 #### Example request
 
 ```http
 DELETE /beers/1
+Authorization: Bearer <token>
 ```
 
 #### Response
@@ -394,11 +586,14 @@ DELETE /beers/1
   "description": "Blonde légère et rafraîchissante aux arômes floraux",
   "alcohol_deg": "5.00",
   "price": "3.50",
-  "brewery_id": 1
+  "brewery_id": 1,
+  "created_by": "3f2c9a1e-8b7d-4c5e-9f10-2a6b8d4e1c37"
 }
 ```
 
 ##### Error responses
+
+En plus des erreurs `401` / `403` communes aux routes protégées (voir [plus haut](#errors-common-to-protected-routes)) :
 
 ###### Invalid beer id
 
@@ -416,7 +611,7 @@ Status: **404 Not Found**
 
 ```json
 {
-  "message": "Beer not Found"
+  "message": "Beer not found"
 }
 ```
 
