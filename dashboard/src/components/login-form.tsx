@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import {useState} from "react";
 import {loginSchema} from "@/lib/validations.ts";
 import {Eye, EyeOff} from "lucide-react";
-import {useNavigate} from "react-router";
+import {Link, useLocation, useNavigate} from "react-router";
 import {useAuth} from "@/contexts/auth-context.tsx";
 
 export function LoginForm({
@@ -31,6 +31,8 @@ export function LoginForm({
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const registered = location.state?.registered === true
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -116,10 +118,13 @@ export function LoginForm({
                 <FieldError>{fieldErrors.password?.[0]}</FieldError>
               </Field>
               <Field>
+                {registered && !error && (
+                  <p className="text-sm text-green-600">Ton compte a bien été créé, tu peux te connecter.</p>
+                )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit">Login</Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
+                  Don&apos;t have an account? <Link to="/register">Sign up</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
