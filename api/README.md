@@ -213,6 +213,7 @@ GET /beers
     "alcohol_deg": "5.00",
     "price": "3.50",
     "brewery_name": "Brasserie du Mont Blanc",
+    "brewery_id": 1,
     "ingredients": ["Malt d'orge", "Houblon Saaz", "Levure ale", "Eau"],
     "categories": ["Blonde"],
     "photos": ["/uploads/beers/956b400c-76c1-4508-b8fd-8eedf756fdf5.jpg"]
@@ -252,6 +253,7 @@ GET /beers/1
   "price": "3.50",
   "brewery_name": "Brasserie du Mont Blanc",
   "created_by": "3f2c9a1e-8b7d-4c5e-9f10-2a6b8d4e1c37",
+  "brewery_id": 1,
   "ingredients": ["Malt d'orge", "Houblon Saaz", "Levure ale", "Eau"],
   "categories": ["Blonde"],
   "photos": ["/uploads/beers/956b400c-76c1-4508-b8fd-8eedf756fdf5.jpg"]
