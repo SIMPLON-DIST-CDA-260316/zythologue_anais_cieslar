@@ -146,4 +146,4 @@ Au montage de la page, un `useEffect` (tableau de dépendances vide) appelle `GE
 - Le front ne sait pas quelles bières appartiennent à l'utilisateur (`GET /beers` ne renvoie pas `created_by`, le contexte ne connaît pas l'id de l'utilisateur) : le bouton de suppression est affiché sur toutes les lignes.
 - Le menu utilisateur affiche des données en dur (« Mon compte ») : le nom et l'email ne sont pas encore récupérés.
 - `/dashboard` seul affiche un contenu vide (pas de route index).
-- Création et modification de bières pas encore faites (nécessitent une route `GET /breweries` côté API pour choisir la brasserie).
+- Création et modification de bières pas encore faites (la route `GET /breweries`, qui fournira la liste des brasseries au formulaire, est prête côté API).

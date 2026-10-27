@@ -152,6 +152,8 @@ POST   /beers                → 🔒 créer une bière (validation Zod)
 PATCH  /beers/:id            → 🔒 mettre à jour une bière (créateur uniquement)
 DELETE /beers/:id            → 🔒 supprimer une bière (créateur uniquement)
 POST   /beers/:id/photos     → 🔒 uploader des photos (créateur uniquement, multipart/form-data)
+
+GET    /breweries            → liste des brasseries (id, nom), triée par nom
 ```
 
 🔒 = route protégée : envoyer le header `Authorization: Bearer <token>`. Le middleware `authenticate` vérifie le token puis place l'utilisateur dans `req.user`. Les modifications ne sont autorisées qu'au créateur de la bière (`beer.created_by === req.user.id`), sinon `403 Forbidden`.

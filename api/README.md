@@ -624,3 +624,45 @@ Status: **500 Internal Server Error**
   "message": "Internal server error"
 }
 ```
+
+## Breweries
+
+### Get all breweries
+
+#### Endpoint
+
+GET `/breweries`
+
+#### Description
+
+List all breweries (id and name only), sorted alphabetically by name. Public route, no token required. Used by the dashboard to fill the brewery select when creating a beer (`brewery_id`).
+
+#### Example request
+
+```http
+GET /breweries
+```
+
+#### Response
+
+##### Success response
+###### Status: 200 OK
+
+```json
+[
+  { "id": 6, "name": "Brasserie Cantillon" },
+  { "id": 13, "name": "Brasserie Chimay" }
+]
+```
+
+##### Error responses
+
+###### Internal server error
+
+Status: **500 Internal Server Error**
+
+```json
+{
+  "message": "Internal server error"
+}
+```
