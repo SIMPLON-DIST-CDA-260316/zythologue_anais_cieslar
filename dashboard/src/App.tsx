@@ -1,6 +1,7 @@
 import LoginPage from "@/pages/login.tsx";
 import {Routes, Route, Navigate, Outlet} from "react-router";
 import DashboardPage from "@/pages/dashboard.tsx";
+import BeersPage from "@/pages/beers.tsx";
 import {useAuth} from "@/contexts/auth-context.tsx";
 
 function ProtectedRoute() {
@@ -15,7 +16,9 @@ function App() {
       <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />} >
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<DashboardPage />}>
+                    <Route path="beers" element={<BeersPage />} />
+                </Route>
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

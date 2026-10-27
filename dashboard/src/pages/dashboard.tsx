@@ -1,14 +1,19 @@
-import {Button} from "@/components/ui/button.tsx";
-import {useAuth} from "@/contexts/auth-context.tsx";
+import {SidebarProvider, SidebarInset, SidebarTrigger} from "@/components/ui/sidebar.tsx";
+import {AppSidebar} from "@/components/app-sidebar.tsx";
+import {Outlet} from "react-router";
 
 export default function DashboardPage() {
-    const {logout} = useAuth();
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
-            <p>Tu es connectée 🍺</p>
-
-            <Button onClick={logout}>Logout</Button>
-        </div>
+        <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+                <header className="flex h-16 items-center border-b px-4">
+                    <SidebarTrigger />
+                </header>
+                <div className="p-6">
+                    <Outlet />
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
     )
 }
