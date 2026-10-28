@@ -12,7 +12,7 @@ Ce dépôt contient :
 - un schema SQL PostgreSQL,
 - des données de test,
 - une API REST en Node.js / Express, sécurisée par comptes utilisateurs (argon2 + JWT),
-- un dashboard React / TypeScript / Vite (page de connexion branchée sur l'API),
+- un dashboard React / TypeScript / Vite (inscription, connexion, dashboard protégé avec CRUD des bières),
 - des diagrammes de séquence UML du parcours d'authentification,
 - une configuration Docker Compose pour lancer PostgreSQL, l'API et le dashboard ensemble en local.
 
@@ -42,9 +42,10 @@ zythologue/
 │   ├── README.md          (documentation du front)
 │   └── src/
 │       ├── App.tsx        (routes React Router)
-│       ├── pages/         (login, dashboard)
-│       ├── components/    (login-form + composants shadcn/ui)
-│       └── lib/           (validations Zod côté client)
+│       ├── contexts/      (AuthContext : token + login/logout)
+│       ├── pages/         (login, register, dashboard, beers)
+│       ├── components/    (formulaires, sidebar + composants shadcn/ui)
+│       └── lib/           (validations Zod, types partagés)
 ├── docs/
 │   ├── dictionnaire_donnees.md
 │   ├── regles_gestion.md
@@ -177,7 +178,7 @@ Application React (Vite + TypeScript + Tailwind + shadcn/ui) lancée par Docker 
 - Le fichier de requêtes `sql/03_queries.sql` est à terminer pour couvrir tout le besoin fonctionnel.
 - CRUD complet sur `beer` (create, read, update, delete), avec validation des données via Zod.
 - Upload de photos pour les bières (Multer, stockage disque, exposition via `GET /beers`).
-- Pas encore de CRUD ni d'upload de photos pour `brewery` (même pattern à répliquer plus tard).
+- `brewery` : seule la liste (`GET /breweries`) existe, pour le formulaire de bière du dashboard. Pas encore de CRUD ni d'upload de photos.
 - Authentification en place : inscription (argon2), connexion (JWT), routes d'écriture protégées et vérification du propriétaire (`created_by`).
 - Diagrammes de séquence UML réalisés pour l'enregistrement, la connexion et l'autorisation.
-- Dashboard : page de connexion fonctionnelle (validation Zod, appel à `/auth/login`, token stocké dans `localStorage`, redirection vers `/dashboard`). La page `/dashboard` n'est pas encore protégée côté front et ne contient qu'un message de bienvenue.
+- Dashboard : inscription et connexion (validation Zod), état de connexion géré par un contexte React (`AuthContext`), routes protégées, layout avec sidebar shadcn, et CRUD complet des bières (tableau, création et modification dans une fenêtre, suppression avec confirmation).

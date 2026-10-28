@@ -54,11 +54,11 @@ src/
 │   ├── login.tsx         (page de connexion)
 │   ├── register.tsx      (page d'inscription)
 │   ├── dashboard.tsx     (layout protégé : sidebar + header + <Outlet />)
-│   └── beers.tsx         (liste des bières + création + suppression)
+│   └── beers.tsx         (liste des bières + CRUD)
 ├── components/
 │   ├── login-form.tsx    (formulaire de connexion)
 │   ├── register-form.tsx (formulaire d'inscription)
-│   ├── beer-form-dialog.tsx (fenêtre + formulaire de création d'une bière)
+│   ├── beer-form-dialog.tsx (fenêtre + formulaire de création/modification d'une bière)
 │   ├── app-sidebar.tsx   (assemblage de la sidebar + menu)
 │   ├── nav-main.tsx      (entrées du menu : lien direct ou sous-menu)
 │   ├── nav-user.tsx      (bloc utilisateur + « Log out »)
@@ -67,6 +67,7 @@ src/
 │   └── use-mobile.ts     (détection écran mobile, utilisé par la sidebar)
 └── lib/
     ├── validations.ts    (schémas Zod : connexion, inscription, bière)
+    ├── types.ts          (types partagés : Beer, Brewery)
     └── utils.ts
 ```
 
@@ -77,7 +78,7 @@ src/
 | `/login`           | `LoginPage`     | Formulaire de connexion                            |
 | `/register`        | `RegisterPage`  | Formulaire d'inscription                           |
 | `/dashboard`       | `DashboardPage` | 🔒 Layout (sidebar + header), contenu vide         |
-| `/dashboard/beers` | `BeersPage`     | 🔒 Liste, création et suppression des bières       |
+| `/dashboard/beers` | `BeersPage`     | 🔒 Liste et CRUD des bières                        |
 | `*`                | —               | Redirection vers `/login`                          |
 
 Les routes sont imbriquées : `ProtectedRoute` → `DashboardPage` → `BeersPage`. Chaque parent affiche son enfant via `<Outlet />`, ce qui permet d'ajouter une nouvelle section (ex : brasseries) sans dupliquer la sidebar.
@@ -131,26 +132,49 @@ L'entrée « Log out » du menu utilisateur (`nav-user.tsx`) appelle `logout()`.
 
 Au montage de la page, un `useEffect` (tableau de dépendances vide) appelle `GET /beers` (route publique) et range le résultat dans un state. Les bières sont affichées dans un tableau shadcn (`Table`) : id, nom, description, degré, prix, brasserie, ingrédients, catégories.
 
-Le chargement est découpé en deux fonctions :
+Le chargement des bières est découpé en deux fonctions :
 - `fetchBeers()` appelle l'API et **renvoie** les bières, sans toucher au state ;
 - `refreshBeers()` appelle `fetchBeers()` puis range le résultat avec `setBeers`.
 
-Le `useEffect` fait `fetchBeers().then((data) => setBeers(data))`. Appeler directement dans l'effet une fonction qui contient un `setState` est refusé par la règle ESLint `react-hooks/set-state-in-effect` ; avec `.then()`, le `setState` a lieu dans un callback, à l'arrivée de la réponse.
+Le `useEffect` fait `fetchBeers().then((data) => setBeers(data))`, et de la même façon charge les brasseries (`GET /breweries`) dans un state `breweries`. Appeler directement dans l'effet une fonction qui contient un `setState` est refusé par la règle ESLint `react-hooks/set-state-in-effect` ; avec `.then()`, le `setState` a lieu dans un callback, à l'arrivée de la réponse.
 
 ### Création
 
 Le bouton « Ajouter une bière », au-dessus du tableau, ouvre le composant `BeerFormDialog` (`components/beer-form-dialog.tsx`) :
 
-1. À son montage, le composant charge la liste des brasseries (`GET /breweries`) pour remplir le `Select`.
+1. Le `Select` est rempli avec la prop `breweries`, chargée une seule fois par `BeersPage` (voir ci-dessous).
 2. Le formulaire demande nom, description, degré d'alcool, prix et brasserie. Il est validé avec `beerSchema` (Zod) ; les erreurs s'affichent sous chaque champ.
 3. `FormData` renvoie toujours des chaînes : le schéma utilise `z.coerce.number()` pour `alcohol_deg`, `price` et `brewery_id`. Les valeurs converties (`result.data`) sont envoyées à l'API.
 4. `POST /beers` avec les headers `Content-Type: application/json` et `Authorization: Bearer <token>`.
-5. Succès → la fenêtre se ferme (`open` est un state : `<Dialog open={open} onOpenChange={setOpen}>`), puis le composant appelle la prop `onSuccess`.
+5. Succès → la fenêtre se ferme (`open` est un state : `<Dialog open={open} onOpenChange={handleOpenChange}>`), puis le composant appelle la prop `onSuccess`.
 6. Échec → le `message` de l'API s'affiche dans la fenêtre ; si l'API est injoignable : « Impossible de contacter le serveur ».
 
 `BeersPage` passe `onSuccess={refreshBeers}` : la liste est rechargée depuis l'API. On n'ajoute pas directement la réponse du `POST` au state, car elle n'a pas le même format que `GET /beers` (`id`, `name`, `brewery_id` au lieu de `beer_id`, `beer_name`, `brewery_name`).
 
 Le `Select` (Base UI) reçoit `name="brewery_id"`, pour que sa valeur soit présente dans `FormData`, et `items` (liste `{ label, value }`), pour afficher le nom de la brasserie choisie plutôt que son id.
+
+`handleOpenChange` ouvre/ferme la fenêtre et remet `error` et `fieldErrors` à zéro, pour qu'un message ne réapparaisse pas à la réouverture.
+
+**Pourquoi les brasseries sont chargées par `BeersPage` :** un `BeerFormDialog` est affiché pour le bouton « Ajouter » **et** sur chaque ligne du tableau (modification). Si chaque instance chargeait les brasseries dans son propre `useEffect`, la page ferait un appel `GET /breweries` par ligne. La page, parent commun, les charge une fois et les passe en prop (*lifting state up*).
+
+### Modification
+
+Le même composant `BeerFormDialog` sert à la modification : il reçoit une prop optionnelle `beer?: Beer`, et `const isEdit = beer !== undefined` détermine le mode.
+
+| | Création (`beer` absent) | Modification (`beer` fourni) |
+|---|---|---|
+| Bouton d'ouverture | « Ajouter une bière », au-dessus du tableau | icône ✏️ (`PencilIcon`) sur chaque ligne |
+| Titre | « Nouvelle bière » | « Modifier <nom> » |
+| Champs | vides | pré-remplis avec `defaultValue={beer?.…}` (le `Select` reçoit `String(beer.brewery_id)`) |
+| Requête | `POST /beers` | `PATCH /beers/:id` |
+| Bouton | « Créer » | « Enregistrer » |
+
+- `defaultValue` (et non `value`) donne une valeur de départ sans rendre le champ contrôlé : l'utilisateur peut le modifier et la valeur est lue avec `FormData`.
+- Un `403` (bière créée par quelqu'un d'autre) est traduit en « Vous ne pouvez modifier que les bières que vous avez créées. ».
+- En cas de succès, la liste est rechargée via `onSuccess={refreshBeers}` (la réponse du `PATCH` a, comme celle du `POST`, les noms de colonnes bruts).
+- Le pré-remplissage de la brasserie nécessite `brewery_id`, ajouté pour cela à la réponse de `GET /beers` côté API.
+
+Les types `Beer` et `Brewery` sont dans `lib/types.ts`, car ils sont utilisés à la fois par la page et par le composant.
 
 ### Suppression
 
@@ -160,13 +184,12 @@ Le `Select` (Base UI) reçoit `name="brewery_id"`, pour que sa valeur soit prés
 4. Échec → le message s'affiche dans la fenêtre. Un `403` (bière créée par quelqu'un d'autre) est traduit en « Vous ne pouvez supprimer que les bières que vous avez créées. ».
 5. L'erreur est remise à `null` à chaque ouverture/fermeture de fenêtre (`onOpenChange`), pour qu'un message ne s'affiche pas sur une autre bière.
 
-> Les bières du seed n'ont pas de propriétaire (`created_by` vide) : leur suppression renvoie toujours `403`. Pour tester une suppression réussie, créer d'abord une bière avec son propre token.
+> Les bières du seed n'ont pas de propriétaire (`created_by` vide) : leur modification et leur suppression renvoient toujours `403`. Pour tester avec succès, créer d'abord une bière avec son propre compte.
 
 ## Limites actuelles / à faire
 
 - La validité du token (signature, expiration à 7 jours) n'est pas vérifiée côté front : un token expiré laisse accéder au dashboard jusqu'au premier appel API, qui renverra `401`. Piste : une route `GET /auth/me` appelée par le contexte au démarrage.
-- Le front ne sait pas quelles bières appartiennent à l'utilisateur (`GET /beers` ne renvoie pas `created_by`, le contexte ne connaît pas l'id de l'utilisateur) : le bouton de suppression est affiché sur toutes les lignes.
+- Le front ne sait pas quelles bières appartiennent à l'utilisateur (`GET /beers` ne renvoie pas `created_by`, le contexte ne connaît pas l'id de l'utilisateur) : les boutons de modification et de suppression sont affichés sur toutes les lignes.
 - Le menu utilisateur affiche des données en dur (« Mon compte ») : le nom et l'email ne sont pas encore récupérés.
 - `/dashboard` seul affiche un contenu vide (pas de route index).
-- Modification de bières pas encore faite. Piste : réutiliser `BeerFormDialog` avec une bière optionnelle en prop (pré-remplissage + `PATCH /beers/:id`).
-- La bière créée n'a ni ingrédients, ni catégories, ni photos : le formulaire ne gère que les 5 champs acceptés par `POST /beers`.
+- Le formulaire ne gère ni les ingrédients, ni les catégories, ni les photos : seulement les 5 champs acceptés par `POST /beers` et `PATCH /beers/:id`.
