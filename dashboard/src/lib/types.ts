@@ -15,3 +15,18 @@ export type Brewery = {
     id: number
     name: string
 }
+
+export type User = {
+    id: string
+    first_name: string
+    last_name: string
+    email: string
+}
+
+export type AuthContextType = {
+    isAuth: boolean
+    login: (token: string) => void
+    logout: () => void
+    token: string | null
+    user: User | null
+}

@@ -14,11 +14,6 @@ import {
 import {BeerIcon} from "lucide-react"
 
   const data = {
-  user: {
-    name: "Mon compte",
-    email: "",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Bières",
@@ -41,7 +36,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
