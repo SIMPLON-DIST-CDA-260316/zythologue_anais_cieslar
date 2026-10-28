@@ -61,3 +61,7 @@ export async function loginUser(req, res) {
         })
     }
 }
+
+export function getMe(req, res){
+    res.status(200).json(req.user)
+}
