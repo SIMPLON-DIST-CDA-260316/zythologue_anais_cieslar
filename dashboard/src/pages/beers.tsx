@@ -11,26 +11,22 @@ import {Trash2Icon} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {useAuth} from "@/contexts/auth-context.tsx";
 import {BeerFormDialog} from "@/components/beer-form-dialog.tsx";
+import type {Beer, Brewery} from "@/lib/types.ts";
 
-type Beer = {
-    beer_id: number
-    beer_name: string
-    description: string
-    alcohol_deg: string
-    price: string
-    brewery_name: string
-    ingredients: string[] | null
-    categories: string[] | null
-    photos: string[] | null
-}
 
 export default function BeersPage() {
     const [beers, setBeers] = useState<Beer[]>([]);
+    const [breweries, setBreweries] = useState<Brewery[]>([]);
     const {isAuth, token} = useAuth()
     const [error, setError] = useState<string | null>(null);
 
     async function fetchBeers() {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/beers`);
+        return await response.json();
+    }
+
+    async function fetchBreweries() {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/breweries`);
         return await response.json();
     }
 
@@ -40,6 +36,7 @@ export default function BeersPage() {
 
     useEffect(() => {
         fetchBeers().then((data) => setBeers(data))
+        fetchBreweries().then((data) => setBreweries(data))
     }, [])
 
     async function handleDelete(beer_id: number) {
@@ -69,7 +66,7 @@ export default function BeersPage() {
 
     return (
         <div>
-        <BeerFormDialog onSuccess={refreshBeers} />
+        <BeerFormDialog breweries={breweries} onSuccess={refreshBeers} />
         <Table>
             <TableHeader>
             <TableRow>
@@ -97,6 +94,8 @@ export default function BeersPage() {
                     <TableCell>{beer.ingredients? beer.ingredients.join(", "):"-"}</TableCell>
                     <TableCell>{beer.categories? beer.categories.join(", "): "-"}</TableCell>
                     <TableCell>
+                        <div className="flex gap-1">
+                        <BeerFormDialog beer={beer} breweries={breweries} onSuccess={refreshBeers} />
                         <AlertDialog onOpenChange={()=>setError(null)}>
                             <AlertDialogTrigger render={<Button variant="ghost" size="icon" />}>
                                 <Trash2Icon/>
@@ -115,6 +114,7 @@ export default function BeersPage() {
                             </AlertDialogContent>
 
                         </AlertDialog>
+                        </div>
                     </TableCell>
                 </TableRow>
             ))}
