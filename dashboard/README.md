@@ -49,7 +49,7 @@ src/
 ├── main.tsx              (point d'entrée, BrowserRouter + AuthProvider)
 ├── App.tsx               (déclaration des routes + ProtectedRoute)
 ├── contexts/
-│   └── auth-context.tsx  (AuthProvider + hook useAuth)
+│   └── auth-context.tsx  (AuthProvider + hook useAuth, charge l'utilisateur via /auth/me)
 ├── pages/
 │   ├── login.tsx         (page de connexion)
 │   ├── register.tsx      (page d'inscription)
@@ -61,13 +61,13 @@ src/
 │   ├── beer-form-dialog.tsx (fenêtre + formulaire de création/modification d'une bière)
 │   ├── app-sidebar.tsx   (assemblage de la sidebar + menu)
 │   ├── nav-main.tsx      (entrées du menu : lien direct ou sous-menu)
-│   ├── nav-user.tsx      (bloc utilisateur + « Log out »)
+│   ├── nav-user.tsx      (initiales, prénom, email de l'utilisateur + « Log out »)
 │   └── ui/               (composants shadcn/ui)
 ├── hooks/
 │   └── use-mobile.ts     (détection écran mobile, utilisé par la sidebar)
 └── lib/
     ├── validations.ts    (schémas Zod : connexion, inscription, bière)
-    ├── types.ts          (types partagés : Beer, Brewery)
+    ├── types.ts          (types partagés : Beer, Brewery, User, AuthContextType)
     └── utils.ts
 ```
 
@@ -101,16 +101,37 @@ Les routes sont imbriquées : `ProtectedRoute` → `DashboardPage` → `BeersPag
 
 L'état de connexion est géré par un contexte React (`src/contexts/auth-context.tsx`), fourni à toute l'app par `AuthProvider` dans `main.tsx`.
 
-Le contexte stocke le **token** dans un state et expose, via le hook `useAuth()` :
+Le contexte stocke le **token** et l'**utilisateur connecté** dans deux states, et expose, via le hook `useAuth()` :
 
 | Valeur          | Rôle                                                                      |
 |-----------------|---------------------------------------------------------------------------|
 | `token`         | le JWT (`string`) ou `null`, à envoyer dans le header `Authorization`     |
 | `isAuth`        | `true` si l'utilisateur est connecté, calculé à partir de `token !== null` |
+| `user`          | `{ id, first_name, last_name, email }` renvoyé par `GET /auth/me`, ou `null` (pas connecté, ou réponse pas encore arrivée) |
 | `login(token)`  | stocke le token dans `localStorage` (clé `token`) et dans le state        |
-| `logout()`      | supprime le token de `localStorage` et remet le state à `null`            |
+| `logout()`      | supprime le token de `localStorage` et remet `token` et `user` à `null`    |
 
 Au chargement de l'app, le token est lu dans `localStorage` : un rechargement de page (F5) ne déconnecte donc pas l'utilisateur. Les composants n'accèdent jamais à `localStorage` directement, ils passent par `useAuth()`.
+
+### Chargement de l'utilisateur (`GET /auth/me`)
+
+Un `useEffect` du contexte, avec `[token]` comme dépendance, appelle `GET /auth/me` avec le header `Authorization: Bearer <token>` :
+
+- au démarrage de l'app (token lu dans `localStorage`) ;
+- après `login()` (nouveau token) : le nom s'affiche sans rechargement de page ;
+- après `logout()`, le token vaut `null` : l'effet s'arrête tout de suite (`if (!token) return`).
+
+Réponse :
+- `200` → `setUser(data)` ;
+- `401` (token expiré, modifié ou utilisateur supprimé) → `logout()`, puis `ProtectedRoute` redirige vers `/login`.
+
+L'appel est écrit avec `.then()` plutôt qu'`async/await` : la fonction d'un `useEffect` ne peut pas être `async`, et un `setState` dans un callback respecte la règle ESLint `set-state-in-effect`. Pour la même raison, `user` est remis à `null` dans `logout()` et non dans l'effet.
+
+Si l'API est injoignable (erreur réseau, pas de `401`), l'utilisateur n'est pas déconnecté : la sidebar n'affiche simplement pas son nom.
+
+### Menu utilisateur
+
+`nav-user.tsx` lit `user` via `useAuth()` (plus de prop ni de données en dur) et affiche les initiales (`first_name[0]` + `last_name[0]`) dans l'avatar, le prénom et l'email. Tant que `user` vaut `null`, l'optional chaining (`user?.first_name`) évite une erreur et rien ne s'affiche.
 
 ### Route protégée
 
@@ -188,8 +209,7 @@ Les types `Beer` et `Brewery` sont dans `lib/types.ts`, car ils sont utilisés �
 
 ## Limites actuelles / à faire
 
-- La validité du token (signature, expiration à 7 jours) n'est pas vérifiée côté front : un token expiré laisse accéder au dashboard jusqu'au premier appel API, qui renverra `401`. Piste : une route `GET /auth/me` appelée par le contexte au démarrage.
-- Le front ne sait pas quelles bières appartiennent à l'utilisateur (`GET /beers` ne renvoie pas `created_by`, le contexte ne connaît pas l'id de l'utilisateur) : les boutons de modification et de suppression sont affichés sur toutes les lignes.
-- Le menu utilisateur affiche des données en dur (« Mon compte ») : le nom et l'email ne sont pas encore récupérés.
+- Le front ne sait pas quelles bières appartiennent à l'utilisateur (`GET /beers` ne renvoie pas `created_by` ; l'id de l'utilisateur est en revanche disponible dans `user.id`) : les boutons de modification et de suppression sont affichés sur toutes les lignes.
 - `/dashboard` seul affiche un contenu vide (pas de route index).
+- Pendant le premier rendu, avant la réponse de `/auth/me`, un token invalide donne accès au dashboard une fraction de seconde avant la redirection.
 - Le formulaire ne gère ni les ingrédients, ni les catégories, ni les photos : seulement les 5 champs acceptés par `POST /beers` et `PATCH /beers/:id`.

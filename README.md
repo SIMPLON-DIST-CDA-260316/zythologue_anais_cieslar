@@ -182,4 +182,4 @@ Application React (Vite + TypeScript + Tailwind + shadcn/ui) lancée par Docker 
 - `brewery` : seule la liste (`GET /breweries`) existe, pour le formulaire de bière du dashboard. Pas encore de CRUD ni d'upload de photos.
 - Authentification en place : inscription (argon2), connexion (JWT), routes d'écriture protégées et vérification du propriétaire (`created_by`).
 - Diagrammes de séquence UML réalisés pour l'enregistrement, la connexion et l'autorisation.
-- Dashboard : inscription et connexion (validation Zod), état de connexion géré par un contexte React (`AuthContext`), routes protégées, layout avec sidebar shadcn, et CRUD complet des bières (tableau, création et modification dans une fenêtre, suppression avec confirmation).
+- Dashboard : inscription et connexion (validation Zod), état de connexion géré par un contexte React (`AuthContext`) qui charge l'utilisateur connecté via `GET /auth/me` et déconnecte si le token est invalide, routes protégées, layout avec sidebar shadcn, et CRUD complet des bières (tableau, création et modification dans une fenêtre, suppression avec confirmation).
