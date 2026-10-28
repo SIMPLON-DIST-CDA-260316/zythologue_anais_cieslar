@@ -146,6 +146,7 @@ Une fois les conteneurs démarrés, l'API est accessible sur `http://localhost:3
 ```text
 POST   /auth/register        → créer un compte (mot de passe hashé avec argon2)
 POST   /auth/login           → se connecter, renvoie un token JWT (valable 7 jours)
+GET    /auth/me              → 🔒 utilisateur connecté (id, prénom, nom, email)
 
 GET    /beers                → liste des bières (avec brasserie, ingrédients, catégories, photos)
 GET    /beers/:id            → détail d'une bière

@@ -6,7 +6,7 @@ Les routes d'écriture sur les bières sont protégées. Le parcours est le suiv
 
 1. `POST /auth/register` crée un compte (mot de passe hashé avec argon2).
 2. `POST /auth/login` vérifie les identifiants et renvoie un token JWT (payload `{ userId }`, signé avec `JWT_SECRET`, valable 7 jours).
-3. Le client envoie ce token sur chaque route protégée :
+3. Le client envoie ce token sur chaque route protégée (dont `GET /auth/me`, qui renvoie l'utilisateur connecté) :
 
 ```http
 Authorization: Bearer <token>
@@ -146,6 +146,45 @@ Status: **500 Internal Server Error**
   "message": "Internal server error"
 }
 ```
+
+### Get the connected user 🔒
+
+#### Endpoint
+
+GET `/auth/me`
+
+#### Description
+
+Return the user who owns the token. The middleware `authenticate` has already checked the token and loaded the user into `req.user`: the controller `getMe` only sends it back (no extra database call, no `try/catch`).
+
+Used by the dashboard at startup to get the user's name and email, and to check that the stored token is still valid (a `401` means the client must log out).
+
+The password hash is never returned: `findUserById` selects only `id`, `first_name`, `last_name` and `email`.
+
+#### Example request
+
+```http
+GET /auth/me
+Authorization: Bearer <token>
+```
+
+#### Response
+
+##### Success response
+###### Status: 200 OK
+
+```json
+{
+  "id": "3f2c9a1e-8b7d-4c5e-9f10-2a6b8d4e1c37",
+  "first_name": "Marie",
+  "last_name": "Dupont",
+  "email": "marie.dupont@example.com"
+}
+```
+
+##### Error responses
+
+`401 Unauthorized` if the token is missing, invalid or expired: see *Errors common to protected routes* below.
 
 ### Errors common to protected routes
 
